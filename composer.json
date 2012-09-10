@@ -1,0 +1,5 @@
+{
+    "require": {
+        "treshugart/testes": "dev-master"
+    }
+}
