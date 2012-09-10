@@ -60,16 +60,16 @@ abstract class SqlDriverAbstract implements DriverInterface
             $config['options']
         );
     }
-	
-	/**
-	 * Returns the raw PDO connection.
-	 * 
-	 * @return PDO
-	 */
-	public function raw()
-	{
-		return $this->pdo;
-	}
+    
+    /**
+     * Returns the raw PDO connection.
+     * 
+     * @return PDO
+     */
+    public function raw()
+    {
+        return $this->pdo;
+    }
     
     /**
      * Executes the statement using PDO.
@@ -81,16 +81,16 @@ abstract class SqlDriverAbstract implements DriverInterface
      */
     public function execute($statement, array $params = [])
     {
-		// Prepare statement.
+        // Prepare statement.
         $statement = $this->pdo->prepare((string) $statement);
-		
-		// Return an associative array if it is a SELECT statement.
-		if (strpos($statement->queryString, 'SELECT ') === 0) {
-			$statement->execute($params);
-			return $statement->fetchAll(PDO::FETCH_ASSOC);
-		}
-		
-		// If not a SELECT statement, return execution result.
+        
+        // Return an associative array if it is a SELECT statement.
+        if (strpos($statement->queryString, 'SELECT ') === 0) {
+            $statement->execute($params);
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        // If not a SELECT statement, return execution result.
         return $statement->execute($params);;
     }
     
@@ -234,7 +234,7 @@ abstract class SqlDriverAbstract implements DriverInterface
         $values = str_split($values);
         
         return sprintf(
-			'UPDATE %s %s %s',
+            'UPDATE %s %s %s',
             $table,
             implode(', ', $fields),
             $this->compileWhere($save->getWheres())
@@ -286,13 +286,13 @@ abstract class SqlDriverAbstract implements DriverInterface
         return 'WHERE ' . $this->compileExpression($wheres);
     }
     
-	/**
-	 * Compiles the JOIN part of a query.
-	 * 
-	 * @param array $joins The joins to compile.
-	 * 
-	 * @return string
-	 */
+    /**
+     * Compiles the JOIN part of a query.
+     * 
+     * @param array $joins The joins to compile.
+     * 
+     * @return string
+     */
     protected function compileJoin(array $joins)
     {
         $sql = '';
@@ -309,13 +309,13 @@ abstract class SqlDriverAbstract implements DriverInterface
         return $sql;
     }
     
-	/**
-	 * Compiles an array of expressions into a WHERE or JOIN clause.
-	 * 
-	 * @param array $exprs The expressions to compile.
-	 * 
-	 * return string
-	 */
+    /**
+     * Compiles an array of expressions into a WHERE or JOIN clause.
+     * 
+     * @param array $exprs The expressions to compile.
+     * 
+     * return string
+     */
     protected function compileExpression(array $exprs)
     {
         $sql = '';

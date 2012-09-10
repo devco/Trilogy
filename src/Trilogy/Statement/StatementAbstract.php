@@ -129,16 +129,16 @@ abstract class StatementAbstract implements StatementInterface
         $method = 'compile' . end($method);
         return $this->connection->driver()->$method($this);
     }
-	
-	/**
-	 * Executes the statement.
-	 * 
-	 * @return mixed
-	 */
-	public function execute()
-	{
-		return $this->connection()->execute($this, $this->params);
-	}
+    
+    /**
+     * Executes the statement.
+     * 
+     * @return mixed
+     */
+    public function execute()
+    {
+        return $this->connection()->execute($this, $this->params);
+    }
     
     /**
      * Applies a where condition to the current mode ("where" or "join").
@@ -306,19 +306,19 @@ abstract class StatementAbstract implements StatementInterface
     {
         return $this->params;
     }
-	
-	/**
-	 * Sets the parameters to use.
-	 * 
-	 * @param array $params The parameters to set.
-	 * 
-	 * @return StatementAbstract
-	 */
-	public function setParams(array $params)
-	{
-		$this->params = $params;
-		return $this;
-	}
+    
+    /**
+     * Sets the parameters to use.
+     * 
+     * @param array $params The parameters to set.
+     * 
+     * @return StatementAbstract
+     */
+    public function setParams(array $params)
+    {
+        $this->params = $params;
+        return $this;
+    }
     
     /**
      * Returns the applied limit.

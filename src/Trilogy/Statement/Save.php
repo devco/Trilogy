@@ -12,8 +12,8 @@ namespace Trilogy\Statement;
  */
 class Save extends StatementAbstract
 {
-	private $data = [];
-	
+    private $data = [];
+    
     /**
      * Binds data to the statement.
      * 
@@ -21,25 +21,25 @@ class Save extends StatementAbstract
      */
     public function data(array $data)
     {
-		$this->data = $data;
-		
-		$temp = [];
-		
-		foreach ($data as $v) {
-			$temp[] = $v;
-		}
-		
-        foreach ($this->getParams() as $v) {
-			$temp[] = $v;
+        $this->data = $data;
+        
+        $temp = [];
+        
+        foreach ($data as $v) {
+            $temp[] = $v;
         }
-		
-		$this->setParams($temp);
-		
-		return $this;
+        
+        foreach ($this->getParams() as $v) {
+            $temp[] = $v;
+        }
+        
+        $this->setParams($temp);
+        
+        return $this;
     }
-	
-	public function getData()
-	{
-		return $this->data;
-	}
+    
+    public function getData()
+    {
+        return $this->data;
+    }
 }

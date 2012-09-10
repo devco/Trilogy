@@ -16,6 +16,6 @@ interface StatementInterface
     public function __construct(ConnectionInterface $connection);
     
     public function __toString();
-	
-	public function execute();
+    
+    public function execute();
 }
