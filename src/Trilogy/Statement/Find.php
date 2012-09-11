@@ -14,6 +14,20 @@ use IteratorAggregate;
 class Find extends StatementAbstract implements IteratorAggregate
 {
     /**
+     * Sort ascending.
+     * 
+     * @var string
+     */
+    const ASC = 'ASC';
+    
+    /**
+     * Sort descending.
+     * 
+     * @var string
+     */
+    const DESC = 'DESC';
+    
+    /**
      * The fields to return.
      * 
      * @var array
@@ -32,7 +46,7 @@ class Find extends StatementAbstract implements IteratorAggregate
      * 
      * @var string
      */
-    private $sortDirection = 'up';
+    private $sortDirection = self::ASC;
     
     /**
      * Executes the statement.
@@ -86,7 +100,7 @@ class Find extends StatementAbstract implements IteratorAggregate
      */
     public function sort($direction)
     {
-        $this->sortDirection = $direction;
+        $this->sortDirection = $direction === self::ASC ? self::ASC : self::DESC;
         return $this;
     }
     
