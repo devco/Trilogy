@@ -1,5 +1,30 @@
 {
+    "authors": [
+        {
+            "name": "Trey Shugart",
+            "email": "treshugart@gmail.com",
+            "homepage": "http://iamtres.com",
+            "role": "Lead Developer"
+        }, {
+            "name": "Josh Bones",
+            "role": "Developer"
+        }, {
+            "name": "Russel Holman",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Trilogy": "src"
+        }
+    },
+    "description": "Simple, lightweight SQL statement abstraction.",
+    "homepage": "http://github.com/DevCo/Trilogy",
+    "keywords": ["dbal", "database", "abstract", "query", "sql", "rdbms"],
+    "license": "MIT",
+    "name": "devco/trek",
     "require": {
+        "php": ">=5.4.0",
         "treshugart/testes": "dev-master"
     }
 }
