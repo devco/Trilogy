@@ -22,7 +22,7 @@
     "homepage": "http://github.com/DevCo/Trilogy",
     "keywords": ["dbal", "database", "abstract", "query", "sql", "rdbms"],
     "license": "MIT",
-    "name": "devco/trek",
+    "name": "devco/trilogy",
     "require": {
         "php": ">=5.4.0",
         "treshugart/testes": "dev-master"
