@@ -114,12 +114,18 @@ abstract class SqlDriverAbstract implements DriverInterface
      */
     public function quote($identifier)
     {
+        if ($this->isReservedWord($identifier)) {
+            return $identifier;
+        }
+        
         $identifiers = explode('.', $identifier);
+        
         foreach ($identifiers as &$identifier) {
             if ($identifier !== '*') {
                 $identifier = '"' . $identifier . '"';
             }
         }
+        
         return implode('.', $identifiers);
     }
     
@@ -395,11 +401,11 @@ abstract class SqlDriverAbstract implements DriverInterface
         
         // Value definition.
         $value = $expr['expression']->getValue();
+        $value = $this->quote($value);
         
-        // If the value is not a placeholder, quote it.
-        if (!$expr['expression']->isBindable()) {
-            $value = $this->quote($value);
-        } elseif ($expr['expression']->getBoundValue() === null) {
+        // If the value is bindable, and null is passed, we convert to IS NULL, or IS NOT NULL
+        // depending on what operator is passed in.
+        if ($expr['expression']->isBindable() && $expr['expression']->getBoundValue() === null) {
             $value = $op === '=' ? 'IS NULL' : 'IS NOT NULL';
             $op    = null;
         }
@@ -435,5 +441,18 @@ abstract class SqlDriverAbstract implements DriverInterface
         $fields = implode(', ', $fields);
         
         return 'ORDER BY ' . $fields . ' ' . $direction;
+    }
+    
+    /**
+     * Returns whether or not the word is reserved.
+     * 
+     * @param string $word The word to check.
+     * 
+     * @return bool
+     */
+    private function isReservedWord($word)
+    {
+        $words = ['?', 'true', 'false', 'null'];
+        return in_array(strtolower($word), $words);
     }
 }
