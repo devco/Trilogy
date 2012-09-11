@@ -100,7 +100,7 @@ class Find extends StatementAbstract implements IteratorAggregate
      */
     public function sort($direction)
     {
-        $this->sortDirection = $direction === self::ASC ? self::ASC : self::DESC;
+        $this->sortDirection = strtoupper($direction) === self::ASC ? self::ASC : self::DESC;
         return $this;
     }
     

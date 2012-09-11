@@ -23,16 +23,6 @@ abstract class SqlDriverAbstract implements DriverInterface
     private $pdo;
     
     /**
-     * List of concatenators for conditions.
-     * 
-     * @var array
-     */
-    private $concatenators = [
-        'and' => 'AND',
-        'or'  => 'OR'
-    ];
-    
-    /**
      * List of custom operators.
      * 
      * @var array
@@ -400,9 +390,8 @@ abstract class SqlDriverAbstract implements DriverInterface
             return;
         }
         
-        $fields    = $this->quoteAll($fields);
-        $fields    = implode(', ', $fields);
-        $direction = $this->directions[$direction];
+        $fields = $this->quoteAll($fields);
+        $fields = implode(', ', $fields);
         
         return 'ORDER BY ' . $fields . ' ' . $direction;
     }
