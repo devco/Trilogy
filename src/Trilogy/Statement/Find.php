@@ -79,7 +79,7 @@ class Find extends StatementAbstract implements IteratorAggregate
      * 
      * @return Find
      */
-    public function find($fields)
+    public function get($fields)
     {
         if (is_string($fields)) {
             $fields = [$fields];

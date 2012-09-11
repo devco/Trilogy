@@ -106,10 +106,7 @@ abstract class StatementAbstract implements StatementInterface
      */
     public function __toString()
     {
-        $method = get_class($this);
-        $method = explode('\\', $method);
-        $method = 'compile' . end($method);
-        return $this->connection->driver()->$method($this);
+        return $this->connection->driver()->compile($this);
     }
     
     /**
@@ -128,7 +125,7 @@ abstract class StatementAbstract implements StatementInterface
             throw new BadMethodCallException(sprintf('The method "%s" does not exist.', $name));
         }
         
-        if (!isset($args[1])) {
+        if (!isset($args[0])) {
             throw new BadMethodCallException(sprintf('You must provide at least one argument to %s().', $name));
         }
         
@@ -170,7 +167,7 @@ abstract class StatementAbstract implements StatementInterface
         
         // Build clause information.
         $where = [
-            'concatenator' => $concat,
+            'concatenator' => strtoupper($concat) === self::CONCAT_AND ? self::CONCAT_AND : self::CONCAT_OR,
             'expression'   => $expr,
             'open'         => $this->open,
             'close'        => 0,

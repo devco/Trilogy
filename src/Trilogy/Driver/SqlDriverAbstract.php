@@ -115,7 +115,12 @@ abstract class SqlDriverAbstract implements DriverInterface
     public function quote($identifier)
     {
         $identifiers = explode('.', $identifier);
-        return '"' . implode('"."', $identifiers) . '"';
+        foreach ($identifiers as &$identifier) {
+            if ($identifier !== '*') {
+                $identifier = '"' . $identifier . '"';
+            }
+        }
+        return implode('.', $identifiers);
     }
     
     /**
@@ -132,6 +137,30 @@ abstract class SqlDriverAbstract implements DriverInterface
             $modified[] = $this->quote($identifier);
         }
         return $modified;
+    }
+    
+    /**
+     * Compiles the passed in statement.
+     * 
+     * @param Statement\StatementInterface $stmt The statement to compile.
+     * 
+     * @return string
+     */
+    public function compile(Statement\StatementInterface $stmt)
+    {
+        if ($stmt instanceof Statement\Find) {
+            return $this->compileFind($stmt);
+        }
+        
+        if ($stmt instanceof Statement\Save) {
+            return $this->compileSave($stmt);
+        }
+        
+        if ($stmt instanceof Statement\Remove) {
+            return $this->compileRemove($stmt);
+        }
+        
+        throw new LogicException(sprintf('Unrecognized statement instance "%s".', get_class($stmt)));
     }
     
     /**
@@ -370,10 +399,22 @@ abstract class SqlDriverAbstract implements DriverInterface
         // If the value is not a placeholder, quote it.
         if (!$expr['expression']->isBindable()) {
             $value = $this->quote($value);
+        } elseif ($expr['expression']->getBoundValue() === null) {
+            $value = $op === '=' ? 'IS NULL' : 'IS NOT NULL';
+            $op    = null;
         }
         
         // Build the expression.
-        return $open . $concat . ' ' . $field . ' ' . $op . ' ' . $value . $close . ' ';
+        return $concat 
+            . ' '
+            . $open
+            . $field
+            . ' '
+            . $op
+            . ($op ? ' ' : '')
+            . $value
+            . $close
+            . ' ';
     }
     
     /**
