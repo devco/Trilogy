@@ -347,10 +347,16 @@ abstract class StatementAbstract implements StatementInterface
     {
         $params = [];
         
-        foreach (['wheres', 'joins'] as $type) {
-            foreach ($this->$type as $part) {
-                if ($part['expression']->isBindable()) {
-                    $params[] = $part['expression']->getBoundValue();
+        foreach ($this->wheres as $where) {
+            if ($where['expression']->isBindable()) {
+                $params[] = $where['expression']->getBoundValue();
+            }
+        }
+        
+        foreach ($this->joins as $join) {
+            foreach ($join['wheres'] as $where) {
+                if ($where['expression']->isBindable()) {
+                    $params[] = $where['expression']->getBoundValue();
                 }
             }
         }
