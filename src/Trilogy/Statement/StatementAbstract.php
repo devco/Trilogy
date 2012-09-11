@@ -1,7 +1,7 @@
 <?php
 
 namespace Trilogy\Statement;
-use ArrayObject;
+use BadMethodCallException;
 use InvalidArgumentException;
 use LogicException;
 use PDO;
@@ -110,6 +110,29 @@ abstract class StatementAbstract implements StatementInterface
         $method = explode('\\', $method);
         $method = 'compile' . end($method);
         return $this->connection->driver()->$method($this);
+    }
+    
+    /**
+     * Proxy for where, andWhere and orWhere.
+     * 
+     * @param string $name The concatenator name.
+     * @param array  $args The arguments to pass on.
+     * 
+     * @return StatementAbstract
+     */
+    public function __call($name, array $args)
+    {
+        $allowed = ['and', 'or'];
+        
+        if (!in_array($name, $allowed)) {
+            throw new BadMethodCallException(sprintf('The method "%s" does not exist.', $name));
+        }
+        
+        if (!isset($args[1])) {
+            throw new BadMethodCallException(sprintf('You must provide at least one argument to %s().', $name));
+        }
+        
+        return $this->where($args[0], isset($args[1]) ? $args[1] : null, $name);
     }
     
     /**

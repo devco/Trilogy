@@ -35,6 +35,32 @@ class Find extends StatementAbstract implements IteratorAggregate
     private $sortDirection = 'up';
     
     /**
+     * Executes the statement.
+     * 
+     * @return mixed
+     */
+    public function all()
+    {
+        return $this->connection()->execute($this, $this->getParams());
+    }
+    
+    /**
+     * Executes and returns a single result. If no results are found, false is returned.
+     * 
+     * @return array | false
+     */
+    public function one()
+    {
+        $result = $this->limit(1)->all();
+        
+        if (isset($result[0])) {
+            return $result[0];
+        }
+        
+        return false;
+    }
+    
+    /**
      * Sets the fields to find.
      * 
      * @return Find

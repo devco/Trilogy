@@ -365,7 +365,7 @@ abstract class SqlDriverAbstract implements DriverInterface
         $op = isset($this->operators[$op]) ? $this->operators[$op] : $op;
         
         // Concatenator: "AND" or "OR".
-        $concat = $this->concatenators[$expr['concatenator']];
+        $concat = $expr['concatenator'];
         
         // Brackets.
         $open  = str_repeat('(', $expr['open']);
