@@ -32,6 +32,15 @@ abstract class SqlDriverAbstract implements DriverInterface
     ];
     
     /**
+     * List of custom operators.
+     * 
+     * @var array
+     */
+    private $operators = [
+        '~' => 'LIKE'
+    ];
+    
+    /**
      * All DBs handle limiting differently.
      * 
      * @param int $limit  The limit.
@@ -79,7 +88,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return mixed
      */
-    public function execute($statement, array $params = [])
+    public function execute($statement, array $params = [], $style = PDO::FETCH_ASSOC)
     {
         // Prepare statement.
         $statement = $this->pdo->prepare((string) $statement);
@@ -87,7 +96,7 @@ abstract class SqlDriverAbstract implements DriverInterface
         // Return an associative array if it is a SELECT statement.
         if (strpos($statement->queryString, 'SELECT ') === 0) {
             $statement->execute($params);
-            return $statement->fetchAll(PDO::FETCH_ASSOC);
+            return $statement->fetchAll($style);
         }
         
         // If not a SELECT statement, return execution result.
@@ -283,7 +292,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      */
     protected function compileWhere(array $wheres)
     {
-        return 'WHERE ' . $this->compileExpression($wheres);
+        return 'WHERE ' . $this->compileExpressions($wheres);
     }
     
     /**
@@ -302,7 +311,7 @@ abstract class SqlDriverAbstract implements DriverInterface
                 '%s JOIN %s ON %s',
                 strtoupper($join['type']),
                 $this->quote($join['table']),
-                $this->compileExpression($join['wheres'])
+                $this->compileExpressions($join['wheres'])
             );
         }
         
@@ -314,31 +323,55 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @param array $exprs The expressions to compile.
      * 
-     * return string
+     * @return string
      */
-    protected function compileExpression(array $exprs)
+    protected function compileExpressions(array $exprs)
     {
         $sql = '';
         
         foreach ($exprs as $expr) {
-            $op     = $expr['expression']->operator();
-            $concat = $this->concatenators[$expr['concatenator']];
-            $open   = str_repeat('(', $expr['open']);
-            $close  = str_repeat(')', $expr['close']);
-            $field  = $this->quote($expr['expression']->field());
-            $value  = $expr['expression']->value();
-            
-            if ($value !== '?') {
-                $value = $this->quote($value);
-            }
-            
-            $sql .= $open . $concat . ' ' . $field . ' ' . $op . ' ' . $value . $close . ' ';
+            $sql .= $this->compileExpression($expr);
         }
         
         $sql = preg_replace('/^([(]*)\s*(AND|OR)\s*/', '$1', $sql);
         $sql = trim($sql);
         
         return $sql;
+    }
+    
+    /**
+     * Compiles a single expression.
+     * 
+     * @param string $expr The expression to compile.
+     * 
+     * @return string
+     */
+    protected function compileExpression(array $expr)
+    {
+        // Operator translation.
+        $op = $expr['expression']->getOperator();
+        $op = isset($this->operators[$op]) ? $this->operators[$op] : $op;
+        
+        // Concatenator: "AND" or "OR".
+        $concat = $this->concatenators[$expr['concatenator']];
+        
+        // Brackets.
+        $open  = str_repeat('(', $expr['open']);
+        $close = str_repeat(')', $expr['close']);
+        
+        // Field definition.
+        $field = $this->quote($expr['expression']->getField());
+        
+        // Value definition.
+        $value = $expr['expression']->getValue();
+        
+        // If the value is not a placeholder, quote it.
+        if (!$expr['expression']->isBindable()) {
+            $value = $this->quote($value);
+        }
+        
+        // Build the expression.
+        return $open . $concat . ' ' . $field . ' ' . $op . ' ' . $value . $close . ' ';
     }
     
     /**

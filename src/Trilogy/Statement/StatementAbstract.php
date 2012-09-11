@@ -18,6 +18,20 @@ use Trilogy\Connection\ConnectionInterface;
 abstract class StatementAbstract implements StatementInterface
 {
     /**
+     * The "AND" concatenator.
+     * 
+     * @var string
+     */
+    const CONCAT_AND = 'AND';
+    
+    /**
+     * The "OR" concatenator.
+     * 
+     * @var string
+     */
+    const CONCAT_OR = 'OR';
+    
+    /**
      * The connection.
      * 
      * @var ConnectionInterface
@@ -79,13 +93,6 @@ abstract class StatementAbstract implements StatementInterface
      * @var string
      */
     private $mode;
-    
-    /**
-     * The current concatenator used for conditions.
-     * 
-     * @var string
-     */
-    private $concatenator = 'and';
 
     /**
      * Constructs a new statement.
@@ -97,24 +104,6 @@ abstract class StatementAbstract implements StatementInterface
     public function __construct(ConnectionInterface $connection)
     {
         $this->connection = $connection;
-    }
-
-    /**
-     * Sets the current concatenator.
-     * 
-     * @param string $name The name of the concatenator.
-     * 
-     * @return StatementInterface
-     */
-    public function __get($expression)
-    {
-        // change of concatenator to "and" or "or"
-        if ($expression === 'and' || $expression === 'or') {
-            $this->concatenator = $expression;
-            return $this;
-        }
-        
-        return $this;
     }
     
     /**
@@ -143,34 +132,73 @@ abstract class StatementAbstract implements StatementInterface
     /**
      * Applies a where condition to the current mode ("where" or "join").
      * 
+     * @param string $expression The expression to use.
+     * @param mixed  $value      The value to bind to the expression.
+     * @param string $concat     The concatenator to use: "and" or "or".
+     * 
      * @return StatementAbstract
      */
-    public function where($expression, $value = null)
+    public function where($expression, $value = null, $concat = self::CONCAT_AND)
     {
-        $expr = new Expression($expression);
+        // Handle an array of expressions.
+        if (is_array($expression)) {
+            foreach ($expression as $name => $vlaue) {
+                $this->where($name, $value);
+            }
+            return $this;
+        }
         
+        // Parse out the expression.
+        $expr = new Expression($expression);
+        $expr->setBoundValue($value);
+        
+        // Build clause information.
         $where = [
-            'concatenator' => $this->concatenator,
+            'concatenator' => $concat,
             'expression'   => $expr,
             'open'         => $this->open,
-            'close'        => 0
+            'close'        => 0,
         ];
         
+        // If we are in "join" mode, add a join, otherwise just add a "where".
         if ($this->mode === 'join') {
             $this->joins[count($this->joins) - 1]['wheres'][] = $where;
         } else {
             $this->wheres[] = $where;
         }
         
-        if ($expr->bindable()) {
-            $this->params[] = $value;
-        }
-        
+        // If we are in brackets, reset.
         if ($this->open) {
             $this->open = 0;
         }
         
         return $this;
+    }
+    
+    /**
+     * Applies a where condition to the current mode ("where" or "join").
+     * 
+     * @param string $expression The expression to use.
+     * @param mixed  $value      The value to bind to the expression.
+     * 
+     * @return StatementAbstract
+     */
+    public function andWhere($expression, $value = null)
+    {
+        return $this->where($expression, $value, self::CONCAT_AND);
+    }
+    
+    /**
+     * Applies a where condition to the current mode ("where" or "join").
+     * 
+     * @param string $expression The expression to use.
+     * @param mixed  $value      The value to bind to the expression.
+     * 
+     * @return StatementAbstract
+     */
+    public function orWhere($expression, $value = null)
+    {
+        return $this->where($expression, $value, self::CONCAT_OR);
     }
     
     /**
@@ -304,20 +332,17 @@ abstract class StatementAbstract implements StatementInterface
      */
     public function getParams()
     {
-        return $this->params;
-    }
-    
-    /**
-     * Sets the parameters to use.
-     * 
-     * @param array $params The parameters to set.
-     * 
-     * @return StatementAbstract
-     */
-    public function setParams(array $params)
-    {
-        $this->params = $params;
-        return $this;
+        $params = [];
+        
+        foreach (['wheres', 'joins'] as $type) {
+            foreach ($this->$type as $part) {
+                if ($part['expression']->isBindable()) {
+                    $params[] = $part['expression']->getBoundValue();
+                }
+            }
+        }
+        
+        return $params;
     }
     
     /**

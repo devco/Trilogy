@@ -38,10 +38,18 @@ class Statement extends UnitAbstract
         $this->assert($find === $comp, 'Compilation failed.');
     }
     
+    public function findLike()
+    {
+        $find = (string) $this->connection->find->in('a')->where('a.a ~ %?%', 'b');
+        $comp = 'SELECT * FROM "a" WHERE "a"."a" LIKE ?';
+        
+        $this->assert($find === $comp, 'Compilation failed.');
+    }
+    
     public function simpleSaveUpdate()
     {
         $save = (string) $this->connection->save->in('test')->data(['field1' => 'value2'])->where('field1 = ?', 'value1');
-        $comp = 'UPDATE TABLE "test" SET "field1" = ? WHERE "field1" = ?';
+        $comp = 'UPDATE "test" SET "field1" = ? WHERE "field1" = ?';
         
         $this->assert($save === $comp, 'Compilation failed.');
     }

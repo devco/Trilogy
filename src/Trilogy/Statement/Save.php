@@ -12,6 +12,9 @@ namespace Trilogy\Statement;
  */
 class Save extends StatementAbstract
 {
+    /**
+     * The data bound
+     */
     private $data = [];
     
     /**
@@ -22,24 +25,36 @@ class Save extends StatementAbstract
     public function data(array $data)
     {
         $this->data = $data;
-        
-        $temp = [];
-        
-        foreach ($data as $v) {
-            $temp[] = $v;
-        }
-        
-        foreach ($this->getParams() as $v) {
-            $temp[] = $v;
-        }
-        
-        $this->setParams($temp);
-        
         return $this;
     }
     
+    /**
+     * Returns the bound data.
+     * 
+     * @return array
+     */
     public function getData()
     {
         return $this->data;
+    }
+    
+    /**
+     * Returns the parameter values bound to the condition expressions.
+     * 
+     * @return array
+     */
+    public function getParams()
+    {
+        $params = [];
+        
+        foreach ($this->data as $param) {
+            $params[] = $param;
+        }
+        
+        foreach (parent::getParams() as $param) {
+            $params[] = $param;
+        }
+        
+        return $params;
     }
 }
