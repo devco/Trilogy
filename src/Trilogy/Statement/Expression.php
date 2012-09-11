@@ -58,7 +58,17 @@ class Expression
     
     public function getBoundValue()
     {
-        return $this->boundValue;
+        $value = $this->boundValue;
+        
+        if ($this->hasWildcardBefore) {
+            $value = '%' . $value;
+        }
+        
+        if ($this->hasWildcardAfter) {
+            $value .= '%';
+        }
+        
+        return $value;
     }
     
     public function setBoundValue($value)
