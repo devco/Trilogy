@@ -60,13 +60,6 @@ abstract class StatementAbstract implements StatementInterface
     private $joins = [];
 
     /**
-     * The parameters bound to the conditions.
-     * 
-     * @var array
-     */
-    private $params = [];
-
-    /**
      * The limit associated to the statement.
      * 
      * @var int
@@ -126,7 +119,7 @@ abstract class StatementAbstract implements StatementInterface
      */
     public function execute()
     {
-        return $this->connection()->execute($this, $this->params);
+        return $this->connection()->execute($this, $this->getParams());
     }
     
     /**
@@ -142,7 +135,7 @@ abstract class StatementAbstract implements StatementInterface
     {
         // Handle an array of expressions.
         if (is_array($expression)) {
-            foreach ($expression as $name => $vlaue) {
+            foreach ($expression as $name => $value) {
                 $this->where($name, $value);
             }
             return $this;

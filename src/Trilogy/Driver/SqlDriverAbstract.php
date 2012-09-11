@@ -1,6 +1,7 @@
 <?php
 
 namespace Trilogy\Driver;
+use LogicException;
 use PDO;
 use Trilogy\Statement;
 
@@ -90,17 +91,28 @@ abstract class SqlDriverAbstract implements DriverInterface
      */
     public function execute($statement, array $params = [], $style = PDO::FETCH_ASSOC)
     {
+        // Return true if not a select statement and the statement does not fail.
+        $return = true;
+        
         // Prepare statement.
         $statement = $this->pdo->prepare((string) $statement);
         
-        // Return an associative array if it is a SELECT statement.
-        if (strpos($statement->queryString, 'SELECT ') === 0) {
-            $statement->execute($params);
-            return $statement->fetchAll($style);
+        // Ensure the statement can be executed.
+        if (!$statement->execute($params)) {
+            $error = $statement->errorInfo();
+            throw new LogicException(sprintf('Query failed - %s:%s - %s', $error[0], $error[1], $error[2]));
         }
         
-        // If not a SELECT statement, return execution result.
-        return $statement->execute($params);;
+        // Return an associative array if it is a SELECT statement.
+        if (strpos($statement->queryString, 'SELECT ') === 0) {
+            $return = $statement->fetchAll($style);
+        }
+        
+        // Ensure the cursor is closed (some drivers require this)
+        $statement->closeCursor();
+        
+        // Return either a result set or true.
+        return $return;
     }
     
     /**
