@@ -69,4 +69,12 @@ class Statement extends UnitAbstract
         
         $this->assert($remove === $comp, 'Compilation failed.');
     }
+    
+    public function aliasing()
+    {
+        $find = (string) $this->db->find->get(['t.*', 't.identifier id'])->in('table t')->and('t.id', 1);
+        $comp = 'SELECT "t".*, "t"."identifier" "id" FROM "table" "t" WHERE "t"."id" = ?';
+        
+        $this->assert($find === $comp, 'Compilation failed.');
+    }
 }

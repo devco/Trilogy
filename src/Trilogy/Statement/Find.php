@@ -2,7 +2,7 @@
 
 namespace Trilogy\Statement;
 use IteratorAggregate;
-use Trilogy\Expression\Field;
+use Trilogy\Statement\Expression\Field;
 
 /**
  * Represents a SELECT statement.

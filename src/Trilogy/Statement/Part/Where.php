@@ -36,7 +36,7 @@ class Where
     public function setClause($clause)
     {
         if (!$clause instanceof Clause) {
-            $this->clause = new Clause($clause);
+            $clause = new Clause($clause);
         }
         
         $this->clause = $clause;

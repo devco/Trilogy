@@ -39,6 +39,16 @@ class Save extends StatementAbstract
     }
     
     /**
+     * Returns the affected fields.
+     * 
+     * @return array
+     */
+    public function getFields()
+    {
+        return array_keys($this->data);
+    }
+    
+    /**
      * Returns the parameter values bound to the condition expressions.
      * 
      * @return array

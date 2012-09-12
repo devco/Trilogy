@@ -1,6 +1,7 @@
 <?php
 
 namespace Trilogy\Statement\Part;
+use Trilogy\Statement\Expression\Table;
 
 class Join
 {

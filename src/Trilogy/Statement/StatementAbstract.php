@@ -6,7 +6,7 @@ use InvalidArgumentException;
 use LogicException;
 use PDO;
 use Trilogy\Connection\ConnectionInterface;
-use Trilogy\Expression\Table;
+use Trilogy\Statement\Expression\Table;
 use Trilogy\Statement\Part\Join;
 use Trilogy\Statement\Part\Where;
 
@@ -40,6 +40,10 @@ abstract class StatementAbstract implements StatementInterface
      * @var string
      */
     const MODE_JOIN = 'join';
+    
+    const METHOD_AND = 'and';
+    
+    const METHOD_OR = 'or';
     
     /**
      * The connection.
@@ -110,16 +114,30 @@ abstract class StatementAbstract implements StatementInterface
     }
     
     /**
+     * Calls "and" or "or" and proxies throught "where".
+     * 
+     * @param string $name The method name.
+     * @param array  $args The method args.
+     * 
+     * @return StatementAbstract
+     */
+    public function __call($name, array $args)
+    {
+        if ($name === self::METHOD_AND || $name === self::METHOD_OR) {
+            return $this->where($args[0], isset($args[1]) ? $args[1] : null, $name);
+        }
+        
+        throw new BadMethodCallException(sprintf('Call to undefined method "%s".', $name));
+    }
+    
+    /**
      * Renders the statement as a string.
      * 
      * @return string
      */
     public function __toString()
     {
-        $method = get_class($this);
-        $method = explode('\\', $method);
-        $method = 'compile' . end($method);
-        return $this->connection->driver()->$method($this);
+        return $this->connection->driver()->compile($this);
     }
     
     /**
@@ -255,7 +273,7 @@ abstract class StatementAbstract implements StatementInterface
             $where = $this->wheres[count($this->wheres) - 1];
         }
         
-        $where->setCloseBrackets($where->getCloseBrackets() + 1);
+        $where->setCloseBrackets($where->getCloseBrackets() + $amt);
         
         return $this;
     }
