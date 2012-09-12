@@ -98,7 +98,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         // Ensure the statement can be executed.
         if (!$pdoStmt->execute($stmt->getParams())) {
             $error = $pdoStmt->errorInfo();
-            throw new LogicException(sprintf('Query failed - %s:%s - %s', $error[0], $error[1], $error[2]));
+            throw new LogicException(sprintf('Query failed - %s:%s - %s - %s', $error[0], $error[1], $error[2], $pdoStmt->queryString));
         }
         
         // Return an associative array if it is a SELECT statement.
