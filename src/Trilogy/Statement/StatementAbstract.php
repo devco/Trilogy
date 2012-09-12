@@ -41,8 +41,18 @@ abstract class StatementAbstract implements StatementInterface
      */
     const MODE_JOIN = 'join';
     
+    /**
+     * The method called when proxying andWhere().
+     * 
+     * @var string
+     */
     const METHOD_AND = 'and';
     
+    /**
+     * The method called when proxying orWhere().
+     * 
+     * @var string
+     */
     const METHOD_OR = 'or';
     
     /**
@@ -100,7 +110,7 @@ abstract class StatementAbstract implements StatementInterface
      * @var string
      */
     private $mode;
-
+    
     /**
      * Constructs a new statement.
      * 
@@ -133,9 +143,9 @@ abstract class StatementAbstract implements StatementInterface
     /**
      * Renders the statement as a string.
      * 
-     * @return string
+     * @return mixed
      */
-    public function __toString()
+    public function compile()
     {
         return $this->connection->driver()->compile($this);
     }
@@ -147,7 +157,7 @@ abstract class StatementAbstract implements StatementInterface
      */
     public function execute()
     {
-        return $this->connection()->execute($this, $this->getParams());
+        return $this->connection->driver()->execute($this);
     }
     
     /**
@@ -376,15 +386,5 @@ abstract class StatementAbstract implements StatementInterface
     public function getOffset()
     {
         return $this->offset;
-    }
-    
-    /**
-     * Returns the associated connection.
-     * 
-     * @return ConnectionInterface
-     */
-    public function connection()
-    {
-        return $this->connection;
     }
 }

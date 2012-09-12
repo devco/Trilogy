@@ -1,7 +1,7 @@
 <?php
 
 namespace Trilogy\Driver;
-use Trilogy\Statement;
+use Trilogy\Statement\StatementInterface;
 
 /**
  * Blueprint for a driver.
@@ -13,13 +13,37 @@ use Trilogy\Statement;
  */
 interface DriverInterface
 {
+    /**
+     * Connects to the data source.
+     * 
+     * @param array $config The driver configuration.
+     * 
+     * @return DriverInterface
+     */
     public function __construct(array $config);
     
-    public function execute($statement, array $params = []);
+    /**
+     * Compiles the statement.
+     * 
+     * @param StatementInterface $stmt The statement to compile.
+     * 
+     * @return mixed
+     */
+    public function compile(StatementInterface $stmt);
     
-    public function compileFind(Statement\Find $find);
+    /**
+     * Executes the specified statement using the specified parameters.
+     * 
+     * @param StatementInterface $stmt The statement to execute.
+     * 
+     * @return mixed
+     */
+    public function execute(StatementInterface $stmt);
     
-    public function compileSave(Statement\Save $save);
-    
-    public function compileRemove(Statement\Remove $remove);
+    /**
+     * Returns the raw connection.
+     * 
+     * @return mixed
+     */
+    public function raw();
 }

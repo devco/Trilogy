@@ -12,7 +12,7 @@ class All extends Suite
         require_once __DIR__ . '/../../src/Trilogy/Autoloader.php';
         Autoloader::register();
         
-        Connection::$defaults['driver'] = 'mock';
-        Connection::register('mock', 'Provider\MockDriver');
+        Connection::register('mysql', 'Provider\Driver\Mysql');
+        Connection::register('pgsql', 'Provider\Driver\Pgsql');
     }
 }

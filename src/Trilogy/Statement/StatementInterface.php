@@ -13,9 +13,26 @@ use Trilogy\Connection\ConnectionInterface;
  */
 interface StatementInterface
 {
+    /**
+     * Constructs a new statement.
+     * 
+     * @param ConnectionInterface $connection The connection to use.
+     * 
+     * @return StatementAbstract
+     */
     public function __construct(ConnectionInterface $connection);
     
-    public function __toString();
+    /**
+     * Renders the statement as a string.
+     * 
+     * @return mixed
+     */
+    public function compile();
     
+    /**
+     * Executes the statement.
+     * 
+     * @return mixed
+     */
     public function execute();
 }

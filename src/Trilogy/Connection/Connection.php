@@ -2,6 +2,7 @@
 
 namespace Trilogy\Connection;
 use InvalidArgumentException;
+use LogicException;
 use Trilogy\Statement;
 
 /**
@@ -38,6 +39,11 @@ class Connection implements ConnectionInterface
         'pgsql' => 'Trilogy\Driver\Pgsql'
     ];
     
+    /**
+     * List of avaialble statement classes.
+     * 
+     * @var array
+     */
     private static $statements = [
         'find'   => 'Trilogy\Statement\Find',
         'save'   => 'Trilogy\Statement\Save',
@@ -50,6 +56,13 @@ class Connection implements ConnectionInterface
      * @var array
      */
     private $config = [];
+    
+    /**
+     * The driver instance.
+     *
+     * @var Trilogy\Driver\DriverInterface
+     */
+    private $driver;
     
     /**
      * Constructs a new connection.
@@ -65,16 +78,13 @@ class Connection implements ConnectionInterface
         
         // Get the driver class name.
         if (isset(self::$drivers[$this->config['driver']])) {
-            $driver = self::$drivers[$this->config['driver']];
+            $this->driver = self::$drivers[$this->config['driver']];
         } else {
             throw new InvalidArgumentException(sprintf(
                 'The driver "%s" does not exist.',
                 $this->config['driver']
             ));
         }
-        
-        // Instantiate the driver class.
-        $this->driver = new $driver($this->config);
     }
     
     /**
@@ -100,20 +110,11 @@ class Connection implements ConnectionInterface
      */
     public function driver()
     {
+        if (is_string($this->driver)) {
+            $driver = $this->driver;
+            $this->driver = new $driver($this->config);
+        }
         return $this->driver;
-    }
-    
-    /**
-     * Prepares and executes the statement and returns the result.
-     * 
-     * @param mixed $statement The statement to execute.
-     * @param array $params    The parameters to execute the statement with.
-     * 
-     * @return mixed
-     */
-    public function execute($statement, array $params = [])
-    {
-        return $this->driver->execute($statement, $params);
     }
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 namespace Trilogy\Driver;
+use Trilogy\Statement\StatementInterface;
 
 /**
  * Handles MySQL specifics.
@@ -20,15 +21,17 @@ class Mysql extends SqlDriverAbstract
      * 
      * @return string
      */
-    protected function compileLimit($limit, $offset)
+    protected function compileLimit(StatementInterface $stmt)
     {
+        $limit = $stmt->getLimit();
+        
         if (!$limit) {
             return;
         }
         
         $sql = 'LIMIT ' . $limit;
         
-        if ($offset) {
+        if ($offset = $stmt->getOffset()) {
             $sql .= ', ' . $offset;
         }
         

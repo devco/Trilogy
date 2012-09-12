@@ -21,7 +21,7 @@ use Trilogy\Statement\StatementInterface;
  * @author   Trey Shugart <treshugart@gmail.com>
  * @license  MIT http://opensource.org/licenses/mit-license.php
  */
-abstract class SqlDriverAbstract implements DriverInterface
+abstract class SqlDriverAbstract implements SqlDriverInterface
 {
     /**
      * The PDO instance.
@@ -42,17 +42,16 @@ abstract class SqlDriverAbstract implements DriverInterface
     /**
      * All DBs handle limiting differently.
      * 
-     * @param int $limit  The limit.
-     * @param int $offset The offset.
+     * @param StatementInterface $stmt The statement to compile the limit for.
      * 
      * @return string
      */
-    protected abstract function compileLimit($limit, $offset);
-
+    protected abstract function compileLimit(StatementInterface $stmt);
+    
     /**
-     * Creates a DSN from the configuration.
+     * Makes a connection to the database.
      * 
-     * @return string
+     * @return SqlDriverAbstract
      */
     public function __construct(array $config)
     {
@@ -67,6 +66,8 @@ abstract class SqlDriverAbstract implements DriverInterface
             $config['password'],
             $config['options']
         );
+        
+        return $this;
     }
     
     /**
@@ -82,68 +83,34 @@ abstract class SqlDriverAbstract implements DriverInterface
     /**
      * Executes the statement using PDO.
      * 
-     * @param mixed $statement The statement to prepare, execute and return the result of.
-     * @param array $params    The parameters to execute the statement with.
+     * @param StatementInterface $statement The statement to execute.
      * 
      * @return mixed
      */
-    public function execute($statement, array $params = [], $style = PDO::FETCH_ASSOC)
+    public function execute(StatementInterface $stmt)
     {
         // Return true if not a select statement and the statement does not fail.
         $return = true;
         
         // Prepare statement.
-        $statement = $this->pdo->prepare((string) $statement);
+        $pdoStmt = $this->pdo->prepare($this->compile($stmt));
         
         // Ensure the statement can be executed.
-        if (!$statement->execute($params)) {
-            $error = $statement->errorInfo();
+        if (!$pdoStmt->execute($stmt->getParams())) {
+            $error = $pdoStmt->errorInfo();
             throw new LogicException(sprintf('Query failed - %s:%s - %s', $error[0], $error[1], $error[2]));
         }
         
         // Return an associative array if it is a SELECT statement.
-        if (strpos($statement->queryString, 'SELECT ') === 0) {
-            $return = $statement->fetchAll($style);
+        if (strpos($pdoStmt->queryString, 'SELECT ') === 0) {
+            $return = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
         }
         
         // Ensure the cursor is closed (some drivers require this)
-        $statement->closeCursor();
+        $pdoStmt->closeCursor();
         
         // Return either a result set or true.
         return $return;
-    }
-    
-    /**
-     * Quotes the specified identifier.
-     * 
-     * @param string $identifier The identifier to quote.
-     * 
-     * @return string
-     */
-    public function quote($identifier)
-    {
-        if ($this->isReservedWord($identifier)) {
-            return $identifier;
-        }
-        
-        $identifiers = explode('.', (string) $identifier);
-        
-        foreach ($identifiers as &$identifier) {
-            if ($identifier !== '*') {
-                $identifier = '"' . $identifier . '"';
-            }
-        }
-        
-        return implode('.', $identifiers);
-    }
-    
-    public function quoteAll(array $identifiers)
-    {
-        $arr = [];
-        foreach ($identifiers as $id) {
-            $arr[] = $this->quote($id);
-        }
-        return $arr;
     }
     
     /**
@@ -171,13 +138,53 @@ abstract class SqlDriverAbstract implements DriverInterface
     }
     
     /**
+     * Quotes the specified identifier.
+     * 
+     * @param string $identifier The identifier to quote.
+     * 
+     * @return string
+     */
+    public function quote($identifier)
+    {
+        if ($this->isReservedWord($identifier)) {
+            return $identifier;
+        }
+        
+        $identifiers = explode('.', (string) $identifier);
+        
+        foreach ($identifiers as &$identifier) {
+            if ($identifier !== '*') {
+                $identifier = '"' . $identifier . '"';
+            }
+        }
+        
+        return implode('.', $identifiers);
+    }
+    
+    /**
+     * Quotes all identifiers in the array and returns them.
+     * 
+     * @param array $identifiers The identifiers to quote.
+     * 
+     * @return array
+     */
+    public function quoteAll(array $identifiers)
+    {
+        $arr = [];
+        foreach ($identifiers as $id) {
+            $arr[] = $this->quote($id);
+        }
+        return $arr;
+    }
+    
+    /**
      * Compiles a find statement.
      * 
      * @param Find $find The find statement.
      * 
      * @return string
      */
-    public function compileFind(Find $find)
+    private function compileFind(Find $find)
     {
         $sqls = [];
         
@@ -192,11 +199,11 @@ abstract class SqlDriverAbstract implements DriverInterface
             $sqls[] = $sql;
         }
         
-        if ($sql = $this->compileOrderBy($find->getSortFields(), $find->getSortDirection())) {
+        if ($sql = $this->compileOrderBy($find)) {
             $sqls[] = $sql;
         }
         
-        if ($sql = $this->compileLimit($find->getLimit(), $find->getOffset())) {
+        if ($sql = $this->compileLimit($find)) {
             $sqls[] = $sql;
         }
         
@@ -210,7 +217,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    public function compileSave(Save $save)
+    private function compileSave(Save $save)
     {
         if ($save->getWheres()) {
             return $this->compileUpdate($save);
@@ -225,7 +232,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    public function compileRemove(Remove $remove)
+    private function compileRemove(Remove $remove)
     {
         return sprintf(
             'DELETE FROM %s %s',
@@ -241,7 +248,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileInsert(Save $save)
+    private function compileInsert(Save $save)
     {
         // Compile field definition.
         $fields = $save->getFields();
@@ -266,7 +273,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileUpdate(Save $save)
+    private function compileUpdate(Save $save)
     {
         $fields = array_keys($save->getData());
         
@@ -292,7 +299,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileSelect(Find $find)
+    private function compileSelect(Find $find)
     {
         if ($find->getFields()) {
             $fields = $this->compileFieldDefinitions($find);
@@ -310,7 +317,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileFrom(StatementInterface $stmt)
+    private function compileFrom(StatementInterface $stmt)
     {
         return 'FROM ' . $this->compileTableDefinitions($stmt);
     }
@@ -322,7 +329,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileWhere(StatementInterface $stmt)
+    private function compileWhere(StatementInterface $stmt)
     {
         if ($sql = $this->compileWhereParts($stmt->getWheres())) {
             return 'WHERE ' . $sql;
@@ -336,7 +343,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileJoin(Find $find)
+    private function compileJoin(Find $find)
     {
         $sql = '';
         
@@ -361,7 +368,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileWhereParts(array $wheres)
+    private function compileWhereParts(array $wheres)
     {
         $sql = '';
         
@@ -382,7 +389,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileWherePart(Where $where)
+    private function compileWherePart(Where $where)
     {
         // The actual clause expression in the where part.
         $clause = $where->getClause();
@@ -433,16 +440,21 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileOrderBy(array $fields, $direction)
+    private function compileOrderBy(Find $stmt)
     {
+        $fields = $stmt->getSorts();
+        
         if (!$fields) {
             return;
         }
         
-        $fields = $this->quoteAll($fields);
-        $fields = implode(', ', $fields);
+        $parts = [];
         
-        return 'ORDER BY ' . $fields . ' ' . $direction;
+        foreach ($fields as $field => $direction) {
+            $parts[] = $this->quote($field) . ' ' . $direction;
+        }
+        
+        return 'ORDER BY ' . implode(', ', $parts);
     }
     
     /**
@@ -488,7 +500,7 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    public function compileFieldDefinitions(Find $find)
+    private function compileFieldDefinitions(Find $find)
     {
         $compiled = [];
         

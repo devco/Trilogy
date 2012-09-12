@@ -22,12 +22,9 @@ interface ConnectionInterface
     public function __construct(array $config = []);
     
     /**
-     * Prepares and executes the statement and returns the result.
+     * Returns the driver instance.
      * 
-     * @param mixed $statement The statement to execute.
-     * @param array $params    The parameters to execute the statement with.
-     * 
-     * @return mixed
+     * @return Trilogy\Driver\DriverInterface;
      */
-    public function execute($statement, array $params = []);
+    public function driver();
 }

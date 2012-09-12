@@ -40,14 +40,7 @@ class Find extends StatementAbstract implements IteratorAggregate
      * 
      * @var array
      */
-    private $sortFields = [];
-    
-    /**
-     * The sort direction.
-     * 
-     * @var string
-     */
-    private $sortDirection = self::ASC;
+    private $sorts = [];
     
     /**
      * Executes the statement.
@@ -91,28 +84,14 @@ class Find extends StatementAbstract implements IteratorAggregate
     /**
      * Sets the sort direction.
      * 
+     * @param string $field     The field to sort by.
      * @param string $direction The sort direction.
      * 
      * @return Find
      */
-    public function sort($direction)
+    public function sort($field, $direction = self::ASC)
     {
-        $this->sortDirection = strtoupper($direction) === self::ASC ? self::ASC : self::DESC;
-        return $this;
-    }
-    
-    /**
-     * Sets the sort fields.
-     * 
-     * @param mixed $fields A string or array of fields to sort by.
-     * 
-     * @return Find
-     */
-    public function by($fields)
-    {
-        foreach ((array) $fields as $field) {
-            $this->fields[] = $field;
-        }
+        $this->sorts[$field] = strtoupper($direction) === self::ASC ? self::ASC : self::DESC;
         return $this;
     }
     
@@ -137,22 +116,12 @@ class Find extends StatementAbstract implements IteratorAggregate
     }
     
     /**
-     * Returns the direction to sort.
+     * Returns the sorting fields and directions.
      * 
      * @return string
      */
-    public function getSortDirection()
+    public function getSorts()
     {
-        return $this->sortDirection;
-    }
-    
-    /**
-     * Returns the fields to sort by.
-     * 
-     * @return array
-     */
-    public function getSortFields()
-    {
-        return $this->sortFields;
+        return $this->sorts;
     }
 }

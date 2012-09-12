@@ -1,7 +1,6 @@
 <?php
 
 namespace Test\All;
-use Provider\MockConnection;
 use Testes\Test\UnitAbstract;
 use Trilogy\Connection\Connection;
 
@@ -11,12 +10,12 @@ class Statement extends UnitAbstract
     
     public function setUp()
     {
-        $this->db = new Connection;
+        $this->db = new Connection(['driver' => 'mysql']);
     }
     
     public function simpleSaveInsert()
     {
-        $save = (string) $this->db->save->in('test')->data(['field1' => 'value1']);
+        $save = $this->db->save->in('test')->data(['field1' => 'value1'])->compile();
         $comp = 'INSERT INTO "test" ("field1") VALUES (?)';
         
         $this->assert($save === $comp, 'Compilation failed.');
@@ -24,7 +23,7 @@ class Statement extends UnitAbstract
     
     public function simpleFind()
     {
-        $find = (string) $this->db->find->in('test')->where('field1 = ?', 'value1');
+        $find = $this->db->find->in('test')->where('field1 = ?', 'value1')->compile();
         $comp = 'SELECT * FROM "test" WHERE "field1" = ?';
         
         $this->assert($find === $comp, 'Compilation failed.');
@@ -32,7 +31,7 @@ class Statement extends UnitAbstract
     
     public function findJoins()
     {
-        $find = (string) $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->where('b.a = a.b');
+        $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->where('b.a = a.b')->compile();
         $comp = 'SELECT * FROM "a" WHERE "a"."a" = ? INNER JOIN "b" ON "b"."a" = "a"."b"';
         
         $this->assert($find === $comp, 'Compilation failed.');
@@ -40,7 +39,7 @@ class Statement extends UnitAbstract
     
     public function findLike()
     {
-        $find = (string) $this->db->find->in('a')->where('a.a ~ %?%', 'b');
+        $find = $this->db->find->in('a')->where('a.a ~ %?%', 'b')->compile();
         $comp = 'SELECT * FROM "a" WHERE "a"."a" LIKE ?';
         
         $this->assert($find === $comp, 'Compilation failed.');
@@ -48,7 +47,7 @@ class Statement extends UnitAbstract
     
     public function findAndOr()
     {
-        $find = (string) $this->db->find->get('a.*')->in(['a', 'b'])->where('a.a', 1)->open()->and('b.a = a.b')->open()->or('a.b')->and('b.a !=')->close(2);
+        $find = $this->db->find->get('a.*')->in(['a', 'b'])->where('a.a', 1)->open()->and('b.a = a.b')->open()->or('a.b')->and('b.a !=')->close(2)->compile();
         $comp = 'SELECT "a".* FROM "a", "b" WHERE "a"."a" = ? AND ("b"."a" = "a"."b" OR ("a"."b" IS NULL AND "b"."a" IS NOT NULL))';
         
         $this->assert($find === $comp, 'Compilation failed.');
@@ -56,7 +55,7 @@ class Statement extends UnitAbstract
     
     public function simpleSaveUpdate()
     {
-        $save = (string) $this->db->save->in('test')->data(['field1' => 'value2'])->where('field1 = ?', 'value1');
+        $save = $this->db->save->in('test')->data(['field1' => 'value2'])->where('field1 = ?', 'value1')->compile();
         $comp = 'UPDATE "test" SET "field1" = ? WHERE "field1" = ?';
         
         $this->assert($save === $comp, 'Compilation failed.');
@@ -64,7 +63,7 @@ class Statement extends UnitAbstract
     
     public function simpleRemove()
     {
-        $remove = (string) $this->db->remove->in('test')->where('field1 = ?', 'value2');
+        $remove = $this->db->remove->in('test')->where('field1 = ?', 'value2')->compile();
         $comp   = 'DELETE FROM "test" WHERE "field1" = ?';
         
         $this->assert($remove === $comp, 'Compilation failed.');
@@ -72,7 +71,7 @@ class Statement extends UnitAbstract
     
     public function aliasing()
     {
-        $find = (string) $this->db->find->get(['t.*', 't.identifier id'])->in('table t')->and('t.id', 1);
+        $find = $this->db->find->get(['t.*', 't.identifier id'])->in('table t')->and('t.id', 1)->compile();
         $comp = 'SELECT "t".*, "t"."identifier" "id" FROM "table" "t" WHERE "t"."id" = ?';
         
         $this->assert($find === $comp, 'Compilation failed.');
