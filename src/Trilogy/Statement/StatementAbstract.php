@@ -6,6 +6,9 @@ use InvalidArgumentException;
 use LogicException;
 use PDO;
 use Trilogy\Connection\ConnectionInterface;
+use Trilogy\Expression\Table;
+use Trilogy\Statement\Part\Join;
+use Trilogy\Statement\Part\Where;
 
 /**
  * Handles common statement functionality.
@@ -30,6 +33,13 @@ abstract class StatementAbstract implements StatementInterface
      * @var string
      */
     const CONCAT_OR = 'OR';
+    
+    /**
+     * When the statement is in "join" mode.
+     * 
+     * @var string
+     */
+    const MODE_JOIN = 'join';
     
     /**
      * The connection.
@@ -131,31 +141,24 @@ abstract class StatementAbstract implements StatementInterface
      * 
      * @return StatementAbstract
      */
-    public function where($expression, $value = null, $concat = self::CONCAT_AND)
+    public function where($where, $value = null, $concat = self::CONCAT_AND)
     {
         // Handle an array of expressions.
-        if (is_array($expression)) {
-            foreach ($expression as $name => $value) {
+        if (is_array($where)) {
+            foreach ($where as $name => $value) {
                 $this->where($name, $value);
             }
             return $this;
         }
         
-        // Parse out the expression.
-        $expr = new Expression($expression);
-        $expr->setBoundValue($value);
-        
-        // Build clause information.
-        $where = [
-            'concatenator' => $concat,
-            'expression'   => $expr,
-            'open'         => $this->open,
-            'close'        => 0,
-        ];
+        // Ensure an instance of the Where part.
+        if (!$where instanceof Where) {
+            $where = new Where($where, $value, $concat, $this->open);
+        }
         
         // If we are in "join" mode, add a join, otherwise just add a "where".
         if ($this->mode === 'join') {
-            $this->joins[count($this->joins) - 1]['wheres'][] = $where;
+            $this->joins[count($this->joins) - 1]->addWhere($where);
         } else {
             $this->wheres[] = $where;
         }
@@ -202,33 +205,25 @@ abstract class StatementAbstract implements StatementInterface
      * 
      * @return StatementAbstract
      */
-    public function join($table, $type = 'inner')
+    public function join($table, $type = Join::INNER)
     {
-        $this->mode = 'join';
-        
-        $this->joins[] = [
-            'table'  => $table,
-            'type'   => $type,
-            'wheres' => []
-        ];
-        
+        $this->mode    = self::MODE_JOIN;
+        $this->joins[] = new Join($table, $type);
         return $this;
     }
 
     /**
      * Sets which tables are associated to the statement.
      * 
+     * @param array | string $tables The table or tables to affect.
+     * 
      * @return StatementInterface
      */
     public function in($tables)
     {
-        if (is_string($tables)) {
-            $tables = [$tables];
+        foreach ((array) $tables as $table) {
+            $this->tables[] = $table instanceof Table ? $table : new Table($table);
         }
-
-        $this->tables = array_merge($this->tables, $tables);
-        $this->tables = array_unique($this->tables);
-
         return $this;
     }
 
@@ -254,7 +249,14 @@ abstract class StatementAbstract implements StatementInterface
      */
     public function close($amt = 1)
     {
-        $this->wheres[count($this->wheres) - 1]['close'] += $amt;
+        if ($this->mode === self::MODE_JOIN) {
+            $where = $this->joins[count($this->joins) - 1]->getLastWhere();
+        } else {
+            $where = $this->wheres[count($this->wheres) - 1];
+        }
+        
+        $where->setCloseBrackets($where->getCloseBrackets() + 1);
+        
         return $this;
     }
     

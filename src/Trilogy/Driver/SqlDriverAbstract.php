@@ -124,8 +124,19 @@ abstract class SqlDriverAbstract implements DriverInterface
      */
     public function quote($identifier)
     {
+        if ($this->isReservedWord($identifier)) {
+            return $identifier;
+        }
+        
         $identifiers = explode('.', $identifier);
-        return '"' . implode('"."', $identifiers) . '"';
+        
+        foreach ($identifiers as &$identifier) {
+            if ($identifier !== '*') {
+                $identifier = '"' . $identifier . '"';
+            }
+        }
+        
+        return implode('.', $identifiers);
     }
     
     /**
@@ -321,9 +332,9 @@ abstract class SqlDriverAbstract implements DriverInterface
         foreach ($joins as $join) {
             $sql .= sprintf(
                 '%s JOIN %s ON %s',
-                strtoupper($join['type']),
-                $this->quote($join['table']),
-                $this->compileExpressions($join['wheres'])
+                strtoupper($join->getType()),
+                $this->quote($join->getTable()),
+                $this->compileWheres($join->getWheres())
             );
         }
         
@@ -337,12 +348,12 @@ abstract class SqlDriverAbstract implements DriverInterface
      * 
      * @return string
      */
-    protected function compileExpressions(array $exprs)
+    protected function compileWheres(array $wheres)
     {
         $sql = '';
         
-        foreach ($exprs as $expr) {
-            $sql .= $this->compileExpression($expr);
+        foreach ($wheres as $where) {
+            $sql .= $this->compileWhere($where);
         }
         
         $sql = preg_replace('/^([(]*)\s*(AND|OR)\s*/', '$1', $sql);
@@ -354,32 +365,38 @@ abstract class SqlDriverAbstract implements DriverInterface
     /**
      * Compiles a single expression.
      * 
-     * @param string $expr The expression to compile.
+     * @param Where $where The where to compile.
      * 
      * @return string
      */
-    protected function compileExpression(array $expr)
+    protected function compileWhere(Where $where)
     {
+        // The actual clause expression in the where part.
+        $clause = $where->getClause();
+        
         // Operator translation.
-        $op = $expr['expression']->getOperator();
+        $op = $clause->getOperator();
         $op = isset($this->operators[$op]) ? $this->operators[$op] : $op;
         
         // Concatenator: "AND" or "OR".
-        $concat = $this->concatenators[$expr['concatenator']];
+        $concat = $where->getConcatenator();
         
         // Brackets.
-        $open  = str_repeat('(', $expr['open']);
-        $close = str_repeat(')', $expr['close']);
+        $open  = str_repeat('(', $where->getOpenBrackets());
+        $close = str_repeat(')', $where->getCloseBrackets());
         
         // Field definition.
-        $field = $this->quote($expr['expression']->getField());
+        $field = $this->quote($clause->getField());
         
         // Value definition.
-        $value = $expr['expression']->getValue();
+        $value = $where->getValue();
+        $value = $this->quote($value);
         
-        // If the value is not a placeholder, quote it.
-        if (!$expr['expression']->isBindable()) {
-            $value = $this->quote($value);
+        // If the value is bindable, and null is passed, we convert to IS NULL, or IS NOT NULL
+        // depending on what operator is passed in.
+        if ($clause->isBindable() && $value === null) {
+            $value = $op === '=' ? 'IS NULL' : 'IS NOT NULL';
+            $op    = null;
         }
         
         // Build the expression.
@@ -405,5 +422,18 @@ abstract class SqlDriverAbstract implements DriverInterface
         $direction = $this->directions[$direction];
         
         return 'ORDER BY ' . $fields . ' ' . $direction;
+    }
+    
+    /**
+     * Returns whether or not the word is reserved.
+     * 
+     * @param string $word The word to check.
+     * 
+     * @return bool
+     */
+    private function isReservedWord($word)
+    {
+        $words = ['?', 'true', 'false', 'null'];
+        return in_array(strtolower($word), $words);
     }
 }

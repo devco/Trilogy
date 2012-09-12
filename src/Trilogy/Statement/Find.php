@@ -2,6 +2,7 @@
 
 namespace Trilogy\Statement;
 use IteratorAggregate;
+use Trilogy\Expression\Field;
 
 /**
  * Represents a SELECT statement.
@@ -41,13 +42,9 @@ class Find extends StatementAbstract implements IteratorAggregate
      */
     public function find($fields)
     {
-        if (is_string($fields)) {
-            $fields = [$fields];
+        foreach ((array) $fields as $field) {
+            $this->fields[] = $field instanceof Field ? $field : new Field($field);
         }
-        
-        $this->fields = array_merge($this->fields, $fields);
-        $this->fields = array_unique($this->fields);
-        
         return $this;
     }
     
@@ -73,13 +70,9 @@ class Find extends StatementAbstract implements IteratorAggregate
      */
     public function by($fields)
     {
-        if (is_string($fields)) {
-            $fields = [$fields];
+        foreach ((array) $fields as $field) {
+            $this->fields[] = $field;
         }
-    
-        $this->sortFields = array_merge($this->sortFields, $fields);
-        $this->sortFields = array_unique($this->sortFields);
-    
         return $this;
     }
     
