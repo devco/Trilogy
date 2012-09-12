@@ -2,6 +2,7 @@
 
 namespace Trilogy\Statement;
 use ArrayObject;
+use BadMethodCallException;
 use InvalidArgumentException;
 use LogicException;
 use PDO;
