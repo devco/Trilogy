@@ -15,6 +15,20 @@ use Trilogy\Expression\Field;
 class Find extends StatementAbstract implements IteratorAggregate
 {
     /**
+     * Sort ascending.
+     * 
+     * @var string
+     */
+    const ASC = 'ASC';
+    
+    /**
+     * Sort descending.
+     * 
+     * @var string
+     */
+    const DESC = 'DESC';
+    
+    /**
      * The fields to return.
      * 
      * @var array
@@ -33,14 +47,40 @@ class Find extends StatementAbstract implements IteratorAggregate
      * 
      * @var string
      */
-    private $sortDirection = 'up';
+    private $sortDirection = self::ASC;
+    
+    /**
+     * Executes the statement.
+     * 
+     * @return mixed
+     */
+    public function all()
+    {
+        return $this->connection()->execute($this, $this->getParams());
+    }
+    
+    /**
+     * Executes and returns a single result. If no results are found, false is returned.
+     * 
+     * @return array | false
+     */
+    public function one()
+    {
+        $result = $this->limit(1)->all();
+        
+        if (isset($result[0])) {
+            return $result[0];
+        }
+        
+        return false;
+    }
     
     /**
      * Sets the fields to find.
      * 
      * @return Find
      */
-    public function find($fields)
+    public function get($fields)
     {
         foreach ((array) $fields as $field) {
             $this->fields[] = $field instanceof Field ? $field : new Field($field);
@@ -57,7 +97,7 @@ class Find extends StatementAbstract implements IteratorAggregate
      */
     public function sort($direction)
     {
-        $this->sortDirection = $direction;
+        $this->sortDirection = strtoupper($direction) === self::ASC ? self::ASC : self::DESC;
         return $this;
     }
     

@@ -20,7 +20,7 @@ class Pgsql extends SqlDriverAbstract
      * 
      * @return string
      */
-    protected function compileLimit($limit, $page)
+    protected function compileLimit($limit, $offset)
     {
         if (!$limit) {
             return;

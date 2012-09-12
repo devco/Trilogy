@@ -23,16 +23,6 @@ abstract class SqlDriverAbstract implements DriverInterface
     private $pdo;
     
     /**
-     * List of concatenators for conditions.
-     * 
-     * @var array
-     */
-    private $concatenators = [
-        'and' => 'AND',
-        'or'  => 'OR'
-    ];
-    
-    /**
      * List of custom operators.
      * 
      * @var array
@@ -153,6 +143,30 @@ abstract class SqlDriverAbstract implements DriverInterface
             $modified[] = $this->quote($identifier);
         }
         return $modified;
+    }
+    
+    /**
+     * Compiles the passed in statement.
+     * 
+     * @param Statement\StatementInterface $stmt The statement to compile.
+     * 
+     * @return string
+     */
+    public function compile(Statement\StatementInterface $stmt)
+    {
+        if ($stmt instanceof Statement\Find) {
+            return $this->compileFind($stmt);
+        }
+        
+        if ($stmt instanceof Statement\Save) {
+            return $this->compileSave($stmt);
+        }
+        
+        if ($stmt instanceof Statement\Remove) {
+            return $this->compileRemove($stmt);
+        }
+        
+        throw new LogicException(sprintf('Unrecognized statement instance "%s".', get_class($stmt)));
     }
     
     /**
@@ -400,7 +414,16 @@ abstract class SqlDriverAbstract implements DriverInterface
         }
         
         // Build the expression.
-        return $open . $concat . ' ' . $field . ' ' . $op . ' ' . $value . $close . ' ';
+        return $concat 
+            . ' '
+            . $open
+            . $field
+            . ' '
+            . $op
+            . ($op ? ' ' : '')
+            . $value
+            . $close
+            . ' ';
     }
     
     /**
@@ -417,9 +440,8 @@ abstract class SqlDriverAbstract implements DriverInterface
             return;
         }
         
-        $fields    = $this->quoteAll($fields);
-        $fields    = implode(', ', $fields);
-        $direction = $this->directions[$direction];
+        $fields = $this->quoteAll($fields);
+        $fields = implode(', ', $fields);
         
         return 'ORDER BY ' . $fields . ' ' . $direction;
     }
