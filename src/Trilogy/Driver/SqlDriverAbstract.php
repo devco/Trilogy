@@ -89,8 +89,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         // Prepare statement.
         $pdoStmt = $this->pdo->prepare($this->compile($stmt));
 
+        // Get the PDO result to read.
+        $pdoResult = $result = $pdoStmt->execute($this->getParametersFromStatement($stmt));
+
         // Ensure the statement can be executed.
-        if (!$pdoStmt->execute($this->getParametersFromStatement($stmt))) {
+        if (!$pdoResult) {
             $error = $pdoStmt->errorInfo();
             throw new LogicException(sprintf('Query failed - %s:%s - %s - %s', $error[0], $error[1], $error[2], $pdoStmt->queryString));
         }
