@@ -4,6 +4,8 @@ namespace Trilogy\Statement\Expression;
 
 class Clause extends ExpressionAbstract
 {
+    const WILDCARD = '*';
+
     private $field;
     
     private $operator = '=';
@@ -27,9 +29,13 @@ class Clause extends ExpressionAbstract
         if (isset($parts[2])) {
             $this->value = $parts[2];
         }
+
+        $before = self::WILDCARD . '?';
+        $after  = '?' . self::WILDCARD;
+        $both   = self::WILDCARD . '?' . self::WILDCARD;
         
-        $this->hasWildcardBefore = $this->value === '%?' || $this->value === '%?%';
-        $this->hasWildcardAfter  = $this->value === '?%' || $this->value === '%?%';
+        $this->hasWildcardBefore = $this->value === $before || $this->value === $both;
+        $this->hasWildcardAfter  = $this->value === $after || $this->value === $both;
         
         if ($this->hasWildcardBefore || $this->hasWildcardAfter) {
             $this->value = '?';

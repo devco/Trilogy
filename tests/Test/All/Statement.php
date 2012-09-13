@@ -39,7 +39,7 @@ class Statement extends UnitAbstract
     
     public function findLike()
     {
-        $find = $this->db->find->in('a')->where('a.a ~ %?%', 'b')->compile();
+        $find = $this->db->find->in('a')->where('a.a ~ *?*', 'b')->compile();
         $comp = 'SELECT * FROM "a" WHERE "a"."a" LIKE ?';
         
         $this->assert($find === $comp, 'Compilation failed.');
