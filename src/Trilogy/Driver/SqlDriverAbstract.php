@@ -1,6 +1,7 @@
 <?php
 
 namespace Trilogy\Driver;
+use Exception;
 use LogicException;
 use PDO;
 use Trilogy\Statement\Expression;
@@ -60,6 +61,9 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
             $config['password'],
             $config['options']
         );
+
+        // Always throw exceptions on failed queries.
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
         return $this;
     }
@@ -89,25 +93,31 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         // Prepare statement.
         $pdoStmt = $this->pdo->prepare($this->compile($stmt));
 
-        // Get the PDO result to read.
-        $pdoResult = $result = $pdoStmt->execute($this->getParametersFromStatement($stmt));
+        // Compile all parameters from the statement.
+        $params = $this->getParametersFromStatement($stmt);
 
-        // Ensure the statement can be executed.
-        if (!$pdoResult) {
-            $error = $pdoStmt->errorInfo();
-            throw new LogicException(sprintf('Query failed - %s:%s - %s - %s', $error[0], $error[1], $error[2], $pdoStmt->queryString));
+        // Get the PDO result to read.
+        try {
+            $pdoResult = $pdoStmt->execute($params);
+        } catch (Exception $e) {
+            throw new LogicException(sprintf(
+                'Could not execute query "%s" with params "%s". Exception Message: %s',
+                $pdoStmt->queryString,
+                var_export($params, true),
+                $e->getMessage()
+            ));
         }
         
         // Return an associative array if it is a find statement.
         if ($stmt instanceof Statement\Find) {
-            $return = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
+            $pdoResult = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
         }
         
         // Ensure the cursor is closed (some drivers require this)
         $pdoStmt->closeCursor();
         
         // Return either a result set or true.
-        return $return;
+        return $pdoResult;
     }
     
     /**
@@ -183,19 +193,24 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      */
     private function getParametersFromStatement(Statement\StatementInterface $stmt)
     {
+        $params = [];
+
         if ($stmt instanceof Statement\Find) {
-            return array_merge($stmt->getWhereParams(), $stmt->getJoinParams());
+            $params = array_merge($stmt->getWhereParams(), $stmt->getJoinParams());
         }
 
         if ($stmt instanceof Statement\Save) {
-            return array_merge($stmt->getData(), $stmt->getWhereParams());
+            $params = array_merge($stmt->getData(), $stmt->getWhereParams());
         }
 
         if ($stmt instanceof Statement\Remove) {
-            return $stmt->getWhereParams();
+            $params = $stmt->getWhereParams();
         }
 
-        return [];
+        // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.
+        $params = array_filter($params);
+
+        return $params;
     }
     
     /**
