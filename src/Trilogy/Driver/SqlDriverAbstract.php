@@ -208,7 +208,9 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         }
 
         // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.
-        $params = array_filter($params);
+        $params = array_filter($params, function($value) {
+            return !is_null($value);
+        });
 
         return $params;
     }
