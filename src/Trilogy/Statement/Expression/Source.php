@@ -2,9 +2,9 @@
 
 namespace Trilogy\Statement\Expression;
 
-class Table extends ExpressionAbstract
+class Source extends ExpressionAbstract
 {
-    private $table;
+    private $source;
     
     private $alias;
     
@@ -14,13 +14,13 @@ class Table extends ExpressionAbstract
         
         if (count($parts) > 2) {
             throw new LogicException(sprintf(
-                'Parse error in expression "%s": Too much whitespace. Table expressions may only contain a single'
-                . 'space separating the table and alias.',
+                'Parse error in expression "%s": Too much whitespace. "In" expressions may only contain a single'
+                . 'space separating the source and alias.',
                 $expr
             ));
         }
         
-        $this->table = $parts[0];
+        $this->source = $parts[0];
         
         if (isset($parts[1])) {
             $this->alias = $parts[1];
@@ -29,14 +29,14 @@ class Table extends ExpressionAbstract
         return $this;
     }
     
-    public function getTable()
+    public function getSource()
     {
-        return $this->table;
+        return $this->source;
     }
     
-    public function setTable($table)
+    public function setSource($source)
     {
-        $this->table = $table;
+        $this->source = $source;
         return $this;
     }
     

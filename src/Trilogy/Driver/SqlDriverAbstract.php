@@ -3,15 +3,9 @@
 namespace Trilogy\Driver;
 use LogicException;
 use PDO;
-use Trilogy\Statement\Expression\Clause;
-use Trilogy\Statement\Expression\Field;
-use Trilogy\Statement\Expression\Table;
-use Trilogy\Statement\Find;
-use Trilogy\Statement\Part\Join;
-use Trilogy\Statement\Part\Where;
-use Trilogy\Statement\Remove;
-use Trilogy\Statement\Save;
-use Trilogy\Statement\StatementInterface;
+use Trilogy\Statement\Expression;
+use Trilogy\Statement\Part;
+use Trilogy\Statement;
 
 /**
  * Common driver behavior.
@@ -42,11 +36,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * All DBs handle limiting differently.
      * 
-     * @param StatementInterface $stmt The statement to compile the limit for.
+     * @param Statement\StatementInterface $stmt The statement to compile the limit for.
      * 
      * @return string
      */
-    protected abstract function compileLimit(StatementInterface $stmt);
+    protected abstract function compileLimit(Statement\StatementInterface $stmt);
     
     /**
      * Makes a connection to the database.
@@ -83,26 +77,26 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Executes the statement using PDO.
      * 
-     * @param StatementInterface $statement The statement to execute.
+     * @param Statement\StatementInterface $statement The statement to execute.
      * 
      * @return mixed
      */
-    public function execute(StatementInterface $stmt)
+    public function execute(Statement\StatementInterface $stmt)
     {
         // Return true if not a select statement and the statement does not fail.
         $return = true;
         
         // Prepare statement.
         $pdoStmt = $this->pdo->prepare($this->compile($stmt));
-        
+
         // Ensure the statement can be executed.
-        if (!$pdoStmt->execute($stmt->getParams())) {
+        if (!$pdoStmt->execute($this->getParametersFromStatement($stmt))) {
             $error = $pdoStmt->errorInfo();
             throw new LogicException(sprintf('Query failed - %s:%s - %s - %s', $error[0], $error[1], $error[2], $pdoStmt->queryString));
         }
         
         // Return an associative array if it is a SELECT statement.
-        if (strpos($pdoStmt->queryString, 'SELECT ') === 0) {
+        if ($stmt instanceof Statement\Find) {
             $return = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
         }
         
@@ -116,25 +110,25 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles the passed in statement.
      * 
-     * @param StatementInterface $stmt The statement to compile.
+     * @param Statement\StatementInterface $stmt The statement to compile.
      * 
      * @return string
      */
-    public function compile(StatementInterface $stmt)
+    public function compile(Statement\StatementInterface $stmt)
     {
-        if ($stmt instanceof Find) {
+        if ($stmt instanceof Statement\Find) {
             return $this->compileFind($stmt);
         }
         
-        if ($stmt instanceof Save) {
+        if ($stmt instanceof Statement\Save) {
             return $this->compileSave($stmt);
         }
         
-        if ($stmt instanceof Remove) {
+        if ($stmt instanceof Statement\Remove) {
             return $this->compileRemove($stmt);
         }
         
-        throw new LogicException(sprintf('Unrecognized statement instance "%s".', get_class($stmt)));
+        return '';
     }
     
     /**
@@ -176,15 +170,39 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         }
         return $arr;
     }
+
+    /**
+     * Orders and returns an array of parameters for a given statement.
+     * 
+     * @param Statement\StatementInterface $stmt The statement to get the bound parameters for.
+     * 
+     * @return array
+     */
+    private function getParametersFromStatement(Statement\StatementInterface $stmt)
+    {
+        if ($stmt instanceof Statement\Find) {
+            return array_merge($stmt->getWhereParams(), $stmt->getJoinParams());
+        }
+
+        if ($stmt instanceof Statement\Save) {
+            return array_merge($stmt->getData(), $stmt->getWhereParams());
+        }
+
+        if ($stmt instanceof Statement\Remove) {
+            return $stmt->getWhereParams();
+        }
+
+        return [];
+    }
     
     /**
      * Compiles a find statement.
      * 
-     * @param Find $find The find statement.
+     * @param Statement\Find $find The find statement.
      * 
      * @return string
      */
-    private function compileFind(Find $find)
+    private function compileFind(Statement\Find $find)
     {
         $sqls = [];
         
@@ -213,11 +231,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles a save statement.
      * 
-     * @param Save $save The save statement.
+     * @param Statement\Save $save The save statement.
      * 
      * @return string
      */
-    private function compileSave(Save $save)
+    private function compileSave(Statement\Save $save)
     {
         if ($save->getWheres()) {
             return $this->compileUpdate($save);
@@ -228,15 +246,15 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles a remove statement.
      * 
-     * @param Remove $remove The remove statement.
+     * @param Statement\Remove $remove The remove statement.
      * 
      * @return string
      */
-    private function compileRemove(Remove $remove)
+    private function compileRemove(Statement\Remove $remove)
     {
         return sprintf(
             'DELETE FROM %s %s',
-            $this->compileTableDefinitions($remove),
+            $this->compileSourceDefinitions($remove),
             $this->compileWhere($remove)
         );
     }
@@ -244,14 +262,14 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles an insert statement.
      * 
-     * @param Save $save The save statement.
+     * @param Statement\Save $save The save statement.
      * 
      * @return string
      */
-    private function compileInsert(Save $save)
+    private function compileInsert(Statement\Save $save)
     {
         // Compile field definition.
-        $fields = $save->getFields();
+        $fields = array_keys($save->getData());
         $fields = $this->quoteAll($fields);
         
         // Compile value definition.
@@ -260,7 +278,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         
         return sprintf(
             'INSERT INTO %s (%s) VALUES (%s)',
-            $this->compileTableDefinitions($save),
+            $this->compileSourceDefinitions($save),
             implode(', ', $fields),
             implode(', ', $values)
         );
@@ -269,11 +287,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles an update statement.
      * 
-     * @param Save $save The save statement.
+     * @param Statement\ave $save The save statement.
      * 
      * @return string
      */
-    private function compileUpdate(Save $save)
+    private function compileUpdate(Statement\Save $save)
     {
         $fields = array_keys($save->getData());
         
@@ -286,7 +304,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         
         return sprintf(
             'UPDATE %s %s %s',
-            $this->compileTableDefinitions($save),
+            $this->compileSourceDefinitions($save),
             implode(', ', $fields),
             $this->compileWhere($save)
         );
@@ -295,11 +313,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles the SELECT part of a find statement.
      * 
-     * @param array $fields The fields to select.
+     * @param Statement\Find $find The find statement to compile the select part for.
      * 
      * @return string
      */
-    private function compileSelect(Find $find)
+    private function compileSelect(Statement\Find $find)
     {
         if ($find->getFields()) {
             $fields = $this->compileFieldDefinitions($find);
@@ -313,23 +331,23 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles the FROM part of a find statement.
      * 
-     * @param StatementInterface $stmt The statement to compile.
+     * @param Statement\StatementInterface $stmt The statement to compile.
      * 
      * @return string
      */
-    private function compileFrom(StatementInterface $stmt)
+    private function compileFrom(Statement\StatementInterface $stmt)
     {
-        return 'FROM ' . $this->compileTableDefinitions($stmt);
+        return 'FROM ' . $this->compileSourceDefinitions($stmt);
     }
     
     /**
      * Compiles the WHERE part of a statement.
      * 
-     * @param StatementInterface $$stmt The statement to compile.
+     * @param Statement\StatementInterface $$stmt The statement to compile.
      * 
      * @return string
      */
-    private function compileWhere(StatementInterface $stmt)
+    private function compileWhere(Statement\StatementInterface $stmt)
     {
         if ($sql = $this->compileWhereParts($stmt->getWheres())) {
             return 'WHERE ' . $sql;
@@ -337,23 +355,23 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     }
     
     /**
-     * Compiles the JOIN part of a query.
+     * Compiles the JOIN part of a find statement.
      * 
-     * @param array $joins The joins to compile.
+     * @param Statement\Find $find The find statement to compile the joins for.
      * 
      * @return string
      */
-    private function compileJoin(Find $find)
+    private function compileJoin(Statement\Find $find)
     {
         $sql = '';
         
         foreach ($find->getJoins() as $join) {
-            $table = $this->compileTableDefinition($join->getTable());
+            $source = $this->compileSourceDefinition($join->getSource());
             
             $sql .= sprintf(
                 '%s JOIN %s ON %s',
                 strtoupper($join->getType()),
-                $table,
+                $source,
                 $this->compileWhereParts($join->getWheres())
             );
         }
@@ -385,11 +403,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles a single expression.
      * 
-     * @param Where $where The where to compile.
+     * @param Part\Where $where The where to compile.
      * 
      * @return string
      */
-    private function compileWherePart(Where $where)
+    private function compileWherePart(Part\Where $where)
     {
         // The actual clause expression in the where part.
         $clause = $where->getClause();
@@ -440,7 +458,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileOrderBy(Find $stmt)
+    private function compileOrderBy(Statement\Find $stmt)
     {
         $fields = $stmt->getSorts();
         
@@ -460,16 +478,16 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles and returns multiple table definitions.
      * 
-     * @param StatementInterface $$stmt The statement to compile.
+     * @param Statement\StatementInterface $stmt The statement to compile.
      * 
      * @return string
      */
-    private function compileTableDefinitions(StatementInterface $stmt)
+    private function compileSourceDefinitions(Statement\StatementInterface $stmt)
     {
         $compiled = [];
         
-        foreach ($stmt->getTables() as $table) {
-            $compiled[] = $this->compileTableDefinition($table);
+        foreach ($stmt->getSources() as $source) {
+            $compiled[] = $this->compileSourceDefinition($source);
         }
         
         return implode(', ', $compiled);
@@ -478,15 +496,15 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles and returns a table definition.
      * 
-     * @param Table $table The table expression.
+     * @param Expression\Source $source The source expression.
      * 
      * @return string
      */
-    private function compileTableDefinition(Table $table)
+    private function compileSourceDefinition(Expression\Source $source)
     {
-        $def = $this->quote($table->getTable());
+        $def = $this->quote($source->getSource());
         
-        if ($alias = $table->getAlias()) {
+        if ($alias = $source->getAlias()) {
             $def .= ' ' . $this->quote($alias);
         }
         
@@ -496,11 +514,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles and returns multiple field definitions.
      * 
-     * @param StatementInterface $$statement The statement to compile.
+     * @param Statement\StatementInterface $$statement The statement to compile.
      * 
      * @return string
      */
-    private function compileFieldDefinitions(Find $find)
+    private function compileFieldDefinitions(Statement\Find $find)
     {
         $compiled = [];
         
@@ -514,11 +532,11 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     /**
      * Compiles and returns a field definition.
      * 
-     * @param Field $field The field expression.
+     * @param Expression\Field $field The field expression.
      * 
      * @return string
      */
-    private function compileFieldDefinition(Field $field)
+    private function compileFieldDefinition(Expression\Field $field)
     {
         $def = $this->quote($field->getField());
         

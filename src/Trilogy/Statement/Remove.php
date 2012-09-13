@@ -12,5 +12,6 @@ namespace Trilogy\Statement;
  */
 class Remove extends StatementAbstract
 {
-    
+    use Type\Source,
+        Type\Where;
 }

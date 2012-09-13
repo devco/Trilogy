@@ -12,59 +12,7 @@ namespace Trilogy\Statement;
  */
 class Save extends StatementAbstract
 {
-    /**
-     * The data bound
-     */
-    private $data = [];
-    
-    /**
-     * Binds data to the statement.
-     * 
-     * @return Save
-     */
-    public function data(array $data)
-    {
-        $this->data = $data;
-        return $this;
-    }
-    
-    /**
-     * Returns the bound data.
-     * 
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-    
-    /**
-     * Returns the affected fields.
-     * 
-     * @return array
-     */
-    public function getFields()
-    {
-        return array_keys($this->data);
-    }
-    
-    /**
-     * Returns the parameter values bound to the condition expressions.
-     * 
-     * @return array
-     */
-    public function getParams()
-    {
-        $params = [];
-        
-        foreach ($this->data as $param) {
-            $params[] = $param;
-        }
-        
-        foreach (parent::getParams() as $param) {
-            $params[] = $param;
-        }
-        
-        return $params;
-    }
+    use Type\Data,
+        Type\Source,
+        Type\Where;
 }

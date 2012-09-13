@@ -1,7 +1,7 @@
 <?php
 
 namespace Trilogy\Statement\Part;
-use Trilogy\Statement\Expression\Table;
+use Trilogy\Statement\Expression;
 
 class Join
 {
@@ -13,13 +13,13 @@ class Join
     
     private $type;
     
-    private $table;
+    private $source;
     
     private $wheres = [];
     
-    public function __construct($table, $type = self::INNER)
+    public function __construct($source, $type = self::INNER)
     {
-        $this->setTable($table);
+        $this->setSource($source);
         $this->setType($type);
     }
     
@@ -34,18 +34,18 @@ class Join
         return $this;
     }
     
-    public function getTable()
+    public function getSource()
     {
-        return $this->table;
+        return $this->source;
     }
     
-    public function setTable($table)
+    public function setSource($source)
     {
-        if (!$table instanceof Table) {
-            $table = new Table($table);
+        if (!$source instanceof Expression\Source) {
+            $source = new Expression\Source($source);
         }
         
-        $this->table = $table;
+        $this->source = $source;
         
         return $this;
     }
