@@ -95,7 +95,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
             throw new LogicException(sprintf('Query failed - %s:%s - %s - %s', $error[0], $error[1], $error[2], $pdoStmt->queryString));
         }
         
-        // Return an associative array if it is a SELECT statement.
+        // Return an associative array if it is a find statement.
         if ($stmt instanceof Statement\Find) {
             $return = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
         }
