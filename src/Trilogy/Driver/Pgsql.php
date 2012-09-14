@@ -23,18 +23,6 @@ class Pgsql extends SqlDriverAbstract
      */
     protected function compileLimit(StatementInterface $stmt)
     {
-        $limit = $stmt->getLimit();
-        
-        if (!$limit) {
-            return;
-        }
-        
-        $sql = 'LIMIT ' . $limit;
-        
-        if ($offset = $stmt->getOffset()) {
-            $sql .= ' OFFSET ' . $offset;
-        }
-        
-        return $sql;
+        return 'LIMIT ? OFFSET ?';
     }
 }

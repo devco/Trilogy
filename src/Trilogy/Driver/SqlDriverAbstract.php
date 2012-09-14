@@ -196,7 +196,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         $params = [];
 
         if ($stmt instanceof Statement\Find) {
-            $params = array_merge($stmt->getWhereParams(), $stmt->getJoinParams());
+            $params = array_merge($stmt->getWhereParams(), $stmt->getJoinParams(), $stmt->getSortParams(), $stmt->getLimitParams());
         }
 
         if ($stmt instanceof Statement\Save) {
@@ -489,7 +489,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         $parts = [];
         
         foreach ($fields as $field => $direction) {
-            $parts[] = $this->quote($field) . ' ' . $direction;
+            $parts[] = '? ?';
         }
         
         return 'ORDER BY ' . implode(', ', $parts);

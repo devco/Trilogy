@@ -28,8 +28,8 @@ trait Limit
      */
     public function limit($limit, $offset = 0)
     {
-        $this->limit  = $limit;
-        $this->offset = $offset;
+        $this->limit  = (int) $limit;
+        $this->offset = (int) $offset;
         return $this;
     }
     
@@ -43,8 +43,8 @@ trait Limit
      */
     public function page($limit, $page = 1)
     {
-        $this->limit  = $limit;
-        $this->offset = ($limit * $page) - $limit;
+        $this->limit  = (int) $limit;
+        $this->offset = ($this->limit * (int) $page) - $this->limit;
         return $this;
     }
 
@@ -66,5 +66,15 @@ trait Limit
     public function getOffset()
     {
         return $this->offset;
+    }
+
+    /**
+     * Returns the parameters to bind to the limit clause.
+     * 
+     * @return array
+     */
+    public function getLimitParams()
+    {
+        return [$this->limit, $this->offset];
     }
 }

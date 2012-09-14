@@ -34,4 +34,21 @@ trait Sort
     {
         return $this->sorts;
     }
+
+    /**
+     * Returns parameters bound to the sort clause.
+     * 
+     * @return array
+     */
+    public function getSortParams()
+    {
+        $params = [];
+
+        foreach ($this->sorts as $name => $direction) {
+            $params[] = $name;
+            $params[] = $direction;
+        }
+
+        return $params;
+    }
 }
