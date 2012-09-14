@@ -212,7 +212,8 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
             return !is_null($value);
         });
 
-        return $params;
+        // Return a re-indexed array so that positions are not out of order.
+        return array_values($params);
     }
     
     /**
