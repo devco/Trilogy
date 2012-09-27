@@ -90,4 +90,19 @@ class Statement extends UnitAbstract
 
         $this->assert(!$find->params());
     }
+
+    public function properParameterOrder()
+    {
+        $find   = $this->db->find->in('table')->where('something', 1)->limit(10, 0);
+        $params = $find->params();
+
+        $this->assert($params[0] === 1 && $params[1] === 10 && $params[2] === 0);
+    }
+
+    public function properParameterCount()
+    {
+        $find = $this->db->find->in('table')->where('something', 1)->limit(10, 0);
+        
+        $this->assert(count($find->params()) === 3);
+    }
 }

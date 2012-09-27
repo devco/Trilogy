@@ -195,12 +195,13 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
     {
         $params = [];
 
+        // All statement types have the ability to have a where clause.
+        if ($stmt->getWheres()) {
+            $params = array_merge($params, $stmt->getWhereParams());
+        }
+
         // Only get certain parameters for certain types of statements.
         if ($stmt instanceof Statement\Find) {
-            if ($stmt->getWheres()) {
-                $params = array_merge($params, $stmt->getWhereParams());
-            }
-
             if ($stmt->getSorts()) {
                 $params = array_merge($params, $stmt->getSortParams());
             }
@@ -210,11 +211,6 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
             }
         } elseif ($stmt instanceof Statement\Save) {
             $params = $stmt->getData();
-        }
-
-        // All statement types have the ability to have a where clause.
-        if ($stmt->getWheres()) {
-            $params = array_merge($params, $stmt->getWhereParams());
         }
 
         // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.
