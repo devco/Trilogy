@@ -1,6 +1,7 @@
 <?php
 
-namespace Trilogy\Driver;
+namespace Trilogy\Driver\Sql;
+use Trilogy\Driver\DriverInterface;
 
 /**
  * SQL driver blueprint.
@@ -10,7 +11,7 @@ namespace Trilogy\Driver;
  * @author   Trey Shugart <treshugart@gmail.com>
  * @license  MIT http://opensource.org/licenses/mit-license.php
  */
-interface SqlDriverInterface extends DriverInterface
+interface SqlInterface extends DriverInterface
 {
     /**
      * Quotes the specified identifier.

@@ -1,17 +1,18 @@
 <?php
 
-namespace Trilogy\Driver;
-use Trilogy\Statement\StatementInterface;
+namespace Trilogy\Driver\Pgsql;
+use Trilogy\Driver\Sql\SqlAbstract;
+use Trilogy\Statement;
 
 /**
- * Handles MySQL specifics.
+ * Handles PosgreSQL specifics.
  * 
  * @category Iterators
  * @package  Trilogy
  * @author   Trey Shugart <treshugart@gmail.com>
  * @license  MIT http://opensource.org/licenses/mit-license.php
  */
-class Mysql extends SqlDriverAbstract
+class Pgsql extends SqlAbstract
 {
     /**
      * All DBs handle limiting differently.
@@ -21,11 +22,11 @@ class Mysql extends SqlDriverAbstract
      * 
      * @return string
      */
-    protected function compileLimit(StatementInterface $stmt)
+    public function compileLimit(Statement\StatementInterface $stmt)
     {
         if (!$stmt->getLimit()) {
             return;
         }
-        return 'LIMIT ?, ?';
+        return 'LIMIT ? OFFSET ?';
     }
 }

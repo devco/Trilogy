@@ -1,7 +1,7 @@
 <?php
 
 namespace Provider\Driver;
-use Trilogy\Driver\Pgsql as Base;
+use Trilogy\Driver\Pgsql\Pgsql as Base;
 
 class Pgsql extends Base
 {
