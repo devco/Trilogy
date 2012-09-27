@@ -15,25 +15,28 @@ class Mysql extends UnitAbstract
     
     public function limit()
     {
-        $find = $this->db->find->in('test')->limit(10)->compile();
-        $comp = 'SELECT * FROM "test" LIMIT 10';
+        $find = $this->db->find->in('test')->limit(10);
+        $comp = 'SELECT * FROM "test" LIMIT ?, ?';
         
-        $this->assert($find === $comp);
+        $this->assert($find->compile() === $comp);
+        $this->assert($find->getLimit() === 10 && $find->getOffset() === 0);
     }
     
     public function limitOffset()
     {
-        $find = $this->db->find->in('test')->limit(10, 30)->compile();
-        $comp = 'SELECT * FROM "test" LIMIT 10, 30';
+        $find = $this->db->find->in('test')->limit(10, 30);
+        $comp = 'SELECT * FROM "test" LIMIT ?, ?';
         
-        $this->assert($find === $comp);
+        $this->assert($find->compile() === $comp);
+        $this->assert($find->getLimit() === 10 && $find->getOffset() === 30);
     }
     
     public function limitPage()
     {
-        $find = $this->db->find->in('test')->page(10, 3)->compile();
-        $comp = 'SELECT * FROM "test" LIMIT 10, 20';
+        $find = $this->db->find->in('test')->page(10, 3);
+        $comp = 'SELECT * FROM "test" LIMIT ?, ?';
         
-        $this->assert($find === $comp);
+        $this->assert($find->compile() === $comp);
+        $this->assert($find->getLimit() === 10 && $find->getOffset() === 20);
     }
 }

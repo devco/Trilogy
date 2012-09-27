@@ -23,6 +23,9 @@ class Mysql extends SqlDriverAbstract
      */
     protected function compileLimit(StatementInterface $stmt)
     {
+        if (!$stmt->getLimit()) {
+            return;
+        }
         return 'LIMIT ?, ?';
     }
 }
