@@ -191,20 +191,30 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return array
      */
-    private function getParametersFromStatement(Statement\StatementInterface $stmt)
+    public function getParametersFromStatement(Statement\StatementInterface $stmt)
     {
         $params = [];
 
+        // Only get certain parameters for certain types of statements.
         if ($stmt instanceof Statement\Find) {
-            $params = array_merge($stmt->getWhereParams(), $stmt->getJoinParams(), $stmt->getSortParams(), $stmt->getLimitParams());
+            if ($stmt->getWheres()) {
+                $params = array_merge($params, $stmt->getWhereParams());
+            }
+
+            if ($stmt->getSorts()) {
+                $params = array_merge($params, $stmt->getSortParams());
+            }
+
+            if ($stmt->getLimit()) {
+                $params = array_merge($params, $stmt->getLimitParams());
+            }
+        } elseif ($stmt instanceof Statement\Save) {
+            $params = $stmt->getData();
         }
 
-        if ($stmt instanceof Statement\Save) {
-            $params = array_merge($stmt->getData(), $stmt->getWhereParams());
-        }
-
-        if ($stmt instanceof Statement\Remove) {
-            $params = $stmt->getWhereParams();
+        // All statement types have the ability to have a where clause.
+        if ($stmt->getWheres()) {
+            $params = array_merge($params, $stmt->getWhereParams());
         }
 
         // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.

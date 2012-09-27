@@ -31,6 +31,26 @@ abstract class StatementAbstract implements StatementInterface
     {
         $this->connection = $connection;
     }
+
+    /**
+     * Returns the connection associated to the statement.
+     * 
+     * @return ConnectionInterface
+     */
+    public function connection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Returns the driver associated to the statement.
+     * 
+     * @return Trilogy\Driver\DriverInterface
+     */
+    public function driver()
+    {
+        return $this->connection->driver();
+    }
     
     /**
      * Renders the statement as a string.
@@ -50,5 +70,15 @@ abstract class StatementAbstract implements StatementInterface
     public function execute()
     {
         return $this->connection->driver()->execute($this);
+    }
+
+    /**
+     * Returns the parameters associated to the statement.
+     * 
+     * @return array
+     */
+    public function params()
+    {
+        return $this->driver()->getParametersFromStatement($this);
     }
 }
