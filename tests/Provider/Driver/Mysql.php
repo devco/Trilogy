@@ -1,7 +1,7 @@
 <?php
 
 namespace Provider\Driver;
-use Trilogy\Driver\Mysql as Base;
+use Trilogy\Driver\Mysql\Mysql as Base;
 
 class Mysql extends Base
 {

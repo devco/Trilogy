@@ -1,6 +1,6 @@
 <?php
 
-namespace Trilogy\Driver;
+namespace Trilogy\Driver\Sql;
 use Exception;
 use LogicException;
 use PDO;
@@ -16,7 +16,7 @@ use Trilogy\Statement;
  * @author   Trey Shugart <treshugart@gmail.com>
  * @license  MIT http://opensource.org/licenses/mit-license.php
  */
-abstract class SqlDriverAbstract implements SqlDriverInterface
+abstract class SqlAbstract implements SqlInterface
 {
     /**
      * The PDO instance.
@@ -31,17 +31,9 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * @var array
      */
     private $operators = [
-        '~' => 'LIKE'
+        '~'  => 'LIKE',
+        '*=' => 'IN',
     ];
-    
-    /**
-     * All DBs handle limiting differently.
-     * 
-     * @param Statement\StatementInterface $stmt The statement to compile the limit for.
-     * 
-     * @return string
-     */
-    protected abstract function compileLimit(Statement\StatementInterface $stmt);
     
     /**
      * Makes a connection to the database.
@@ -229,7 +221,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileFind(Statement\Find $find)
+    public function compileFind(Statement\Find $find)
     {
         $sqls = [];
         
@@ -262,7 +254,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileSave(Statement\Save $save)
+    public function compileSave(Statement\Save $save)
     {
         if ($save->getWheres()) {
             return $this->compileUpdate($save);
@@ -277,7 +269,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileRemove(Statement\Remove $remove)
+    public function compileRemove(Statement\Remove $remove)
     {
         return sprintf(
             'DELETE FROM %s %s',
@@ -293,7 +285,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileInsert(Statement\Save $save)
+    public function compileInsert(Statement\Save $save)
     {
         // Compile field definition.
         $fields = array_keys($save->getData());
@@ -318,7 +310,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileUpdate(Statement\Save $save)
+    public function compileUpdate(Statement\Save $save)
     {
         $fields = array_keys($save->getData());
         
@@ -344,7 +336,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileSelect(Statement\Find $find)
+    public function compileSelect(Statement\Find $find)
     {
         if ($find->getFields()) {
             $fields = $this->compileFieldDefinitions($find);
@@ -362,7 +354,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileFrom(Statement\StatementInterface $stmt)
+    public function compileFrom(Statement\StatementInterface $stmt)
     {
         return 'FROM ' . $this->compileSourceDefinitions($stmt);
     }
@@ -374,7 +366,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileWhere(Statement\StatementInterface $stmt)
+    public function compileWhere(Statement\StatementInterface $stmt)
     {
         if ($sql = $this->compileWhereParts($stmt->getWheres())) {
             return 'WHERE ' . $sql;
@@ -388,7 +380,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileJoin(Statement\Find $find)
+    public function compileJoin(Statement\Find $find)
     {
         $sql = '';
         
@@ -413,7 +405,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileWhereParts(array $wheres)
+    public function compileWhereParts(array $wheres)
     {
         $sql = '';
         
@@ -434,7 +426,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileWherePart(Part\Where $where)
+    public function compileWherePart(Part\Where $where)
     {
         // The actual clause expression in the where part.
         $clause = $where->getClause();
@@ -462,6 +454,14 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         if ($clause->isBindable() && $where->getValue() === null) {
             $value = $op === '=' ? 'IS NULL' : 'IS NOT NULL';
             $op    = null;
+        // Handle "IN" operators.
+        } elseif ($op === 'IN' && $value === '?') {
+            $where->setValue((array) $where->getValue());
+            $value = $where->getValue();
+            $value = str_repeat('?', count($value));
+            $value = str_split($value);
+            $value = implode(', ', $value);
+            $value = '(' . $value . ')';
         }
         
         // Build the expression.
@@ -485,7 +485,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileOrderBy(Statement\Find $stmt)
+    public function compileOrderBy(Statement\Find $stmt)
     {
         $fields = $stmt->getSorts();
         
@@ -501,6 +501,23 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
         
         return 'ORDER BY ' . implode(', ', $parts);
     }
+
+    /**
+     * All DBs handle limiting differently.
+     * 
+     * @param int $limit  The limit.
+     * @param int $offset The offset.
+     * 
+     * @return string
+     */
+    public function compileLimit(Statement\StatementInterface $stmt)
+    {
+        if (!$stmt->getLimit()) {
+            return;
+        }
+
+        return 'LIMIT ?, ?';
+    }
     
     /**
      * Compiles and returns multiple table definitions.
@@ -509,7 +526,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileSourceDefinitions(Statement\StatementInterface $stmt)
+    public function compileSourceDefinitions(Statement\StatementInterface $stmt)
     {
         $compiled = [];
         
@@ -527,7 +544,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileSourceDefinition(Expression\Source $source)
+    public function compileSourceDefinition(Expression\Source $source)
     {
         $def = $this->quote($source->getSource());
         
@@ -545,7 +562,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileFieldDefinitions(Statement\Find $find)
+    public function compileFieldDefinitions(Statement\Find $find)
     {
         $compiled = [];
         
@@ -563,7 +580,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return string
      */
-    private function compileFieldDefinition(Expression\Field $field)
+    public function compileFieldDefinition(Expression\Field $field)
     {
         $def = $this->quote($field->getField());
         
@@ -581,7 +598,7 @@ abstract class SqlDriverAbstract implements SqlDriverInterface
      * 
      * @return bool
      */
-    private function isReservedWord($word)
+    public function isReservedWord($word)
     {
         $words = ['?', 'true', 'false', 'null'];
         return in_array(strtolower($word), $words);

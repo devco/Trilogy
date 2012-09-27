@@ -105,4 +105,21 @@ class Statement extends UnitAbstract
         
         $this->assert(count($find->params()) === 3);
     }
+
+    public function operatorIn()
+    {
+        $find1 = $this->db->find->in('table')->where('something *=', 1);
+        $find2 = $this->db->find->in('table')->where('something *= ?', [1]);
+        $comp  = 'SELECT * FROM "table" WHERE "something" IN (?)';
+
+        $this->assert($find1->compile() === $comp, $find1->compile());
+        $this->assert($find2->compile() === $comp, $find2->compile());
+
+        $find1 = $this->db->find->in('table')->where('something *=', [1, 2, 3]);
+        $find2 = $this->db->find->in('table')->where('something *= ?', [1, 2, 3]);
+        $comp  = 'SELECT * FROM "table" WHERE "something" IN (?, ?, ?)';
+
+        $this->assert($find1->compile() === $comp, $find1->compile());
+        $this->assert($find2->compile() === $comp, $find2->compile());
+    }
 }

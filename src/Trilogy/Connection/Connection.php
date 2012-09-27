@@ -36,8 +36,9 @@ class Connection implements ConnectionInterface
      * @var array
      */
     private static $drivers = [
-        'mysql' => 'Trilogy\Driver\Mysql',
-        'pgsql' => 'Trilogy\Driver\Pgsql'
+        'mysql' => 'Trilogy\Driver\Mysql\Mysql',
+        'pgsql' => 'Trilogy\Driver\Pgsql\Pgsql',
+        'sql'   => 'Trilogy\Driver\Sql\Sql'
     ];
     
     /**
