@@ -76,4 +76,18 @@ class Statement extends UnitAbstract
         
         $this->assert($find === $comp, 'Compilation failed.');
     }
+
+    public function limitParamsIfLimitSpecified()
+    {
+        $find = $this->db->find->in('table t')->page(10, 2);
+
+        $this->assert($find->params()[0] === 10 && $find->params()[1] === 10);
+    }
+
+    public function noLimitParamsIfNoLimitSpecified()
+    {
+        $find = $this->db->find->in('table t');
+
+        $this->assert(!$find->params());
+    }
 }
