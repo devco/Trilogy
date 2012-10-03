@@ -33,6 +33,16 @@ abstract class StatementAbstract implements StatementInterface
     }
 
     /**
+     * Returns the statement as a string. Since `compile()` can throw exceptions, this isn't generally used.
+     * 
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->compile();
+    }
+
+    /**
      * Returns the connection associated to the statement.
      * 
      * @return ConnectionInterface

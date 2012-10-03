@@ -44,6 +44,14 @@ class Statement extends UnitAbstract
         
         $this->assert($find === $comp, 'Compilation failed.');
     }
+
+    public function findNotLike()
+    {
+        $find = $this->db->find->in('a')->where('a.a !~ *?*', 'b')->compile();
+        $comp = 'SELECT * FROM "a" WHERE "a"."a" NOT LIKE ?';
+        
+        $this->assert($find === $comp, 'Compilation failed.');
+    }
     
     public function findAndOr()
     {
@@ -108,18 +116,26 @@ class Statement extends UnitAbstract
 
     public function operatorIn()
     {
-        $find1 = $this->db->find->in('table')->where('something *=', 1);
-        $find2 = $this->db->find->in('table')->where('something *= ?', [1]);
+        $find1 = $this->db->find->in('table')->where('something *', 1);
+        $find2 = $this->db->find->in('table')->where('something * ?', [1]);
         $comp  = 'SELECT * FROM "table" WHERE "something" IN (?)';
 
         $this->assert($find1->compile() === $comp, $find1->compile());
         $this->assert($find2->compile() === $comp, $find2->compile());
 
-        $find1 = $this->db->find->in('table')->where('something *=', [1, 2, 3]);
-        $find2 = $this->db->find->in('table')->where('something *= ?', [1, 2, 3]);
+        $find1 = $this->db->find->in('table')->where('something *', [1, 2, 3]);
+        $find2 = $this->db->find->in('table')->where('something * ?', [1, 2, 3]);
         $comp  = 'SELECT * FROM "table" WHERE "something" IN (?, ?, ?)';
 
         $this->assert($find1->compile() === $comp, $find1->compile());
         $this->assert($find2->compile() === $comp, $find2->compile());
+    }
+
+    public function operatorNotIn()
+    {
+        $find = $this->db->find->in('table')->where('something !* ?', [1, 2, 3]);
+        $comp = 'SELECT * FROM "table" WHERE "something" NOT IN (?, ?, ?)';
+
+        $this->assert($find->compile() === $comp, $find->compile());
     }
 }

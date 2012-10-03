@@ -23,7 +23,7 @@ class Connection implements ConnectionInterface
     public static $defaults = [
         'driver'   => 'mysql',
         'host'     => 'localhost',
-        'port'     => null,
+        'port'     => 3306,
         'database' => 'default',
         'username' => 'root',
         'password' => '',

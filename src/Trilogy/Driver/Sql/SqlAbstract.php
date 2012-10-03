@@ -32,7 +32,9 @@ abstract class SqlAbstract implements SqlInterface
      */
     private $operators = [
         '~'  => 'LIKE',
-        '*=' => 'IN',
+        '!~' => 'NOT LIKE',
+        '*'  => 'IN',
+        '!*' => 'NOT IN'
     ];
     
     /**
@@ -455,7 +457,7 @@ abstract class SqlAbstract implements SqlInterface
             $value = $op === '=' ? 'IS NULL' : 'IS NOT NULL';
             $op    = null;
         // Handle "IN" operators.
-        } elseif ($op === 'IN' && $value === '?') {
+        } elseif (($op === 'NOT IN' || $op === 'IN') && $value === '?') {
             $where->setValue((array) $where->getValue());
             $value = $where->getValue();
             $value = str_repeat('?', count($value));
