@@ -15,7 +15,7 @@ The goal of Trilogy is to be as simple as possible to use and extend.
 
 ### Drivers
 
-Trilogy current supports the following drivers:
+Trilogy currently supports the following drivers:
 
 * Mysql
 * Pgsql
