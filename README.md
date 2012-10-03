@@ -22,7 +22,7 @@ Trilogy currently supports the following drivers:
 
 There are other drivers in the works:
 
-* MongoDB
+* Mongo
 * Mssql
 
 ### Making a Connection
