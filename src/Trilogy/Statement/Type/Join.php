@@ -100,22 +100,4 @@ trait Join
     {
         return $this->joins;
     }
-
-    /**
-     * Returns all parameters bound to the where conditions in order of appearance.
-     * 
-     * @return array
-     */
-    public function getJoinParams()
-    {
-        $params = [];
-
-        foreach ($this->joins as $join) {
-            foreach ($join->getWheres() as $where) {
-                $params[] = $where->getValue();
-            }
-        }
-
-        return $params;
-    }
 }

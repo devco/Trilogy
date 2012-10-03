@@ -189,22 +189,26 @@ abstract class SqlAbstract implements SqlInterface
     {
         $params = [];
 
-        // All statement types have the ability to have a where clause.
-        if ($stmt->getWheres()) {
-            $params = array_merge($params, $stmt->getWhereParams());
+        // Save parameter parts.
+        if ($stmt instanceof Statement\Save) {
+            $params = array_merge($params, $stmt->getData());
+        }
+
+        // Where clause parameters.
+        foreach ($stmt->getWheres() as $where) {
+            $params[] = $where->getValue();
         }
 
         // Only get certain parameters for certain types of statements.
         if ($stmt instanceof Statement\Find) {
-            if ($stmt->getSorts()) {
-                $params = array_merge($params, $stmt->getSortParams());
+            foreach ($stmt->getSorts() as $field => $direction) {
+                $params[] = $field;
+                $params[] = $direction;
             }
 
-            if ($stmt->getLimit()) {
-                $params = array_merge($params, $stmt->getLimitParams());
+            if ($limit = $stmt->getLimit()) {
+                $params = array_merge($params, [$stmt->getLimit(), $stmt->getOffset()]);
             }
-        } elseif ($stmt instanceof Statement\Save) {
-            $params = array_merge($params, $stmt->getData());
         }
 
         // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.

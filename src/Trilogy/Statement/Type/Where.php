@@ -125,20 +125,4 @@ trait Where
     {
         return $this->wheres;
     }
-
-    /**
-     * Returns all parameters bound to the where conditions in order of appearance.
-     * 
-     * @return array
-     */
-    public function getWhereParams()
-    {
-        $params = [];
-
-        foreach ($this->wheres as $where) {
-            $params[] = $where->getValue();
-        }
-
-        return $params;
-    }
 }

@@ -67,14 +67,4 @@ trait Limit
     {
         return $this->offset;
     }
-
-    /**
-     * Returns the parameters to bind to the limit clause.
-     * 
-     * @return array
-     */
-    public function getLimitParams()
-    {
-        return [$this->limit, $this->offset];
-    }
 }
