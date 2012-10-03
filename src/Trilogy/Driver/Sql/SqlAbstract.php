@@ -204,7 +204,7 @@ abstract class SqlAbstract implements SqlInterface
                 $params = array_merge($params, $stmt->getLimitParams());
             }
         } elseif ($stmt instanceof Statement\Save) {
-            $params = $stmt->getData();
+            $params = array_merge($params, $stmt->getData());
         }
 
         // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.
