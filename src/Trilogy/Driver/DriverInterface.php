@@ -46,4 +46,13 @@ interface DriverInterface
      * @return mixed
      */
     public function raw();
+
+    /**
+     * Returns the statement parameters.
+     * 
+     * @param StatementInterface $stmt The statement to get the parameters from.
+     * 
+     * @return array
+     */
+    public function getParametersFromStatement(StatementInterface $stmt);
 }

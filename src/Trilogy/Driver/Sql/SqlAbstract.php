@@ -194,9 +194,16 @@ abstract class SqlAbstract implements SqlInterface
             $params = array_merge($params, $stmt->getData());
         }
 
-        // Where clause parameters.
+        // Where clause parameters. Array values are merged
+        // because they are part of an * operator.
         foreach ($stmt->getWheres() as $where) {
-            $params[] = $where->getValue();
+            $value = $where->getValue();
+
+            if (is_array($value)) {
+                $params = array_merge($params, $value);
+            } else {
+                $params[] = $value;
+            }
         }
 
         // Only get certain parameters for certain types of statements.
@@ -211,12 +218,14 @@ abstract class SqlAbstract implements SqlInterface
             }
         }
 
-        // We need to remove all null values since they are transformed into "IS NULL" or "IS NOT NULL" tokens.
+        // We need to remove all null values since they are
+        // transformed into "IS NULL" or "IS NOT NULL" tokens.
         $params = array_filter($params, function($value) {
             return !is_null($value);
         });
 
-        // Return a re-indexed array so that positions are not out of order.
+        // Return a re-indexed array so that
+        // positions are not out of order.
         return array_values($params);
     }
     

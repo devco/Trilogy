@@ -134,6 +134,7 @@ class Statement extends UnitAbstract
 
         $this->assert($find1->compile() === $comp, $find1->compile());
         $this->assert($find2->compile() === $comp, $find2->compile());
+        $this->assert(count($find1->params()) === 3, 'Param count should be 3.');
     }
 
     public function operatorNotIn()
@@ -142,5 +143,6 @@ class Statement extends UnitAbstract
         $comp = 'SELECT * FROM "table" WHERE "something" NOT IN (?, ?, ?)';
 
         $this->assert($find->compile() === $comp, $find->compile());
+        $this->assert(count($find->params()), 'Param count should be 3.');
     }
 }
