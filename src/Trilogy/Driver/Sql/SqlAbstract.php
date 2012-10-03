@@ -317,14 +317,14 @@ abstract class SqlAbstract implements SqlInterface
         $fields = array_keys($save->getData());
         
         foreach ($fields as &$field) {
-            $field = 'SET ' . $this->quote($field) . ' = ?';
+            $field = $this->quote($field) . ' = ?';
         }
         
         $values = str_repeat('?', count($fields));
         $values = str_split($values);
         
         return sprintf(
-            'UPDATE %s %s %s',
+            'UPDATE %s SET %s %s',
             $this->compileSourceDefinitions($save),
             implode(', ', $fields),
             $this->compileWhere($save)

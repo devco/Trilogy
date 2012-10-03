@@ -63,10 +63,15 @@ class Statement extends UnitAbstract
     
     public function simpleSaveUpdate()
     {
-        $save = $this->db->save->in('test')->data(['field1' => 'value2'])->where('field1', 'value1')->compile();
-        $comp = 'UPDATE "test" SET "field1" = ? WHERE "field1" = ?';
+        $save = $this->db->save
+            ->in('test')
+            ->data(['field1' => 'value2', 'field2' => 'value1'])
+            ->where('field1', 'value1')
+            ->compile();
+
+        $comp = 'UPDATE "test" SET "field1" = ?, "field2" = ? WHERE "field1" = ?';
         
-        $this->assert($save === $comp, 'Compilation failed.');
+        $this->assert($save === $comp, $save);
     }
     
     public function simpleRemove()
