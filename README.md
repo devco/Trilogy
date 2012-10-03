@@ -46,8 +46,6 @@ This will connect you to MySQL on `localhost` using port `3306` and connecting t
 #### Driver Options
 
 * `driver` The Trilogy supported driver name to use.
-** `mysql`
-** `pgsql`
 * `host` The host the database resides on.
 * `port` The host port.
 * `database` The name of the database to use.
@@ -59,9 +57,9 @@ This will connect you to MySQL on `localhost` using port `3306` and connecting t
 
 Trilogy supports the following types of statements:
 
-* Find
-* Remove
-* Save
+* `Find`
+* `Remove`
+* `Save`
 
 ### Statement Types
 
@@ -180,7 +178,7 @@ Expressions are broken down into 3 parts delimitted by whitespace:
 
     <field or alias> <operator = "="> <value = "?">
 
-A `field` is just a field name. Nothing special. An `operator` can is a special token that is used by the driver to convert to a valid operator for the backend it represents. The `value` can either be another field reference, or a placeholder ( ? ).
+A `field` is just a field name. Nothing special. An `operator` is a special token that is used by the driver to convert to a valid operator for the backend it represents. The `value` can either be another field reference, or a `?` placeholder.
 
 *Any source, field, alias or non-placeholder value is automatically quoted.*
 
@@ -189,13 +187,13 @@ Valid operators are:
 * `=` Equals a value.
 * `!=` Not equal to a value.
 * `~` Like a value.
-* '!~' Not like a value.
+* `!~` Not like a value.
 * `*` This field must contain one of the values in the specified array.
 * `!*` This field must NOT contain one of the values in the specified array.
 * `<` Less than.
-* '<=' Less than or equal to.
-* '>' Greater than.
-* '>=' Greater than or equal to.
+* `<=` Less than or equal to.
+* `>` Greater than.
+* `>=` Greater than or equal to.
 
 *Since operators are just passed through if no matching one is found, other operators may work but won't be abstracted by Trilogy.*
 
