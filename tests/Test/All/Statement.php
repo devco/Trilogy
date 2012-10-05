@@ -155,8 +155,8 @@ class Statement extends UnitAbstract
         $comp1 = 'SELECT * FROM "table" WHERE "something" = ? ORDER BY "sortfield" ASC';
         $comp2 = 'SELECT * FROM "table" WHERE "something" = ? ORDER BY "sortfield" DESC';
 
-	$this->assert($find1->compile() === $comp1, $find1->compile());
-	$this->assert($find2->compile() === $comp1, $find2->compile());
-	$this->assert($find3->compile() === $comp2, $find3->compile());
+        $this->assert($find1->compile() === $comp1, $find1->compile());
+        $this->assert($find2->compile() === $comp1, $find2->compile());
+        $this->assert($find3->compile() === $comp2, $find3->compile());
     }
 }
