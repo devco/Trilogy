@@ -208,11 +208,6 @@ abstract class SqlAbstract implements SqlInterface
 
         // Only get certain parameters for certain types of statements.
         if ($stmt instanceof Statement\Find) {
-            foreach ($stmt->getSorts() as $field => $direction) {
-                $params[] = $field;
-                $params[] = $direction;
-            }
-
             if ($limit = $stmt->getLimit()) {
                 $params = array_merge($params, [$stmt->getLimit(), $stmt->getOffset()]);
             }
@@ -511,7 +506,7 @@ abstract class SqlAbstract implements SqlInterface
         $parts = [];
         
         foreach ($fields as $field => $direction) {
-            $parts[] = '? ?';
+            $parts[] = $this->quote($field) .' '. $direction;
         }
         
         return 'ORDER BY ' . implode(', ', $parts);

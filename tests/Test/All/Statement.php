@@ -145,4 +145,18 @@ class Statement extends UnitAbstract
         $this->assert($find->compile() === $comp, $find->compile());
         $this->assert(count($find->params()), 'Param count should be 3.');
     }
+
+    public function findOrderBy()
+    {
+        $find1 = $this->db->find->in('table')->where('something', 1)->sort('sortfield');
+        $find2 = $this->db->find->in('table')->where('something', 1)->sort('sortfield', 'asc');
+        $find3 = $this->db->find->in('table')->where('something', 1)->sort('sortfield', 'desc');
+
+        $comp1 = 'SELECT * FROM "table" WHERE "something" = ? ORDER BY "sortfield" ASC';
+        $comp2 = 'SELECT * FROM "table" WHERE "something" = ? ORDER BY "sortfield" DESC';
+
+        $this->assert($find1->compile() === $comp1, $find1->compile());
+        $this->assert($find2->compile() === $comp1, $find2->compile());
+        $this->assert($find3->compile() === $comp2, $find3->compile());
+    }
 }
