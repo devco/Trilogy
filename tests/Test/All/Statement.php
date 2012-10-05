@@ -85,7 +85,7 @@ class Statement extends UnitAbstract
     public function aliasing()
     {
         $find = $this->db->find->get(['t.*', 't.identifier id'])->in('table t')->where('t.id', 1)->compile();
-        $comp = 'SELECT "t".*, "t"."identifier" "id" FROM "table" "t" WHERE "t"."id" = ?';
+        $comp = 'SELECT "t".*, "t"."identifier" AS "id" FROM "table" "t" WHERE "t"."id" = ?';
         
         $this->assert($find === $comp, 'Compilation failed.');
     }

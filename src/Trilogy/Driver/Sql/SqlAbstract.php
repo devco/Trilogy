@@ -600,7 +600,7 @@ abstract class SqlAbstract implements SqlInterface
         $def = $this->quote($field->getField());
         
         if ($alias = $field->getAlias()) {
-            $def .= ' ' . $this->quote($alias);
+            $def .= ' AS ' . $this->quote($alias);
         }
         
         return $def;
