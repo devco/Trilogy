@@ -238,11 +238,11 @@ abstract class SqlAbstract implements SqlInterface
         $sqls[] = $this->compileSelect($find);
         $sqls[] = $this->compileFrom($find);
         
-        if ($sql = $this->compileWhere($find)) {
-            $sqls[] = $sql;
-        }
-        
         if ($sql = $this->compileJoin($find)) {
+            $sqls[] = $sql;
+        }        
+        
+        if ($sql = $this->compileWhere($find)) {
             $sqls[] = $sql;
         }
         

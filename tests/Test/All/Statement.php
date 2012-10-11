@@ -32,7 +32,7 @@ class Statement extends UnitAbstract
     public function findJoins()
     {
         $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->on('b.a = a.b')->compile();
-        $comp = 'SELECT * FROM "a" WHERE "a"."a" = ? INNER JOIN "b" ON "b"."a" = "a"."b"';
+        $comp = 'SELECT * FROM "a" INNER JOIN "b" ON "b"."a" = "a"."b" WHERE "a"."a" = ?';
         
         $this->assert($find === $comp, 'Compilation failed.');
     }
