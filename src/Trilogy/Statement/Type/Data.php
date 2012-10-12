@@ -16,6 +16,13 @@ trait Data
      */
     public function data(array $data)
     {
+        //strip null fields
+        foreach ($data as $key => $value) {
+            if ($value == null) {
+                unset($data[$key]);
+            }
+        }
+        
         $this->data = $data;
         return $this;
     }
