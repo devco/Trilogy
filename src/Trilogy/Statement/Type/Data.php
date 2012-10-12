@@ -18,7 +18,7 @@ trait Data
     {
         //strip null fields
         foreach ($data as $key => $value) {
-            if ($value == null) {
+            if ($value === null) {
                 unset($data[$key]);
             }
         }
