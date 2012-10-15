@@ -154,9 +154,9 @@ class Connection implements ConnectionInterface
      * 
      * @return bool
      */
-    public function getTransactionStatus() 
+    public function inTransaction() 
     {
-        $this->driver()->getTransactionStatus();
+        $this->driver()->inTransaction();
     }
     
     /**

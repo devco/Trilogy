@@ -82,5 +82,5 @@ interface DriverInterface
      * 
      * @return bool
      */
-    public function getTransactionStatus();
+    public function inTransaction();
 }
