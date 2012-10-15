@@ -55,4 +55,32 @@ interface DriverInterface
      * @return array
      */
     public function getParametersFromStatement(StatementInterface $stmt);
+    
+    /**
+     * Begins a transaction. returns true if successful, false otherwise 
+     * 
+     * @return bool 
+     */
+    public function beginTransaction();
+    
+    /**
+     * Commits the active transaction. return true if successful, false otherwise 
+     * 
+     * @return bool 
+     */
+    public function commitTransaction();
+    
+    /**
+     * Perform a rollback on the active transaction. returns true if successful, false otherwise 
+     *  
+     * @return bool 
+     */
+    public function rollbackTransaction();
+    
+    /**
+     * Gets the current status of the transaction. true = in transaction, false = no active transaction
+     * 
+     * @return bool
+     */
+    public function getTransactionStatus();
 }

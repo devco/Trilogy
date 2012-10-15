@@ -93,8 +93,8 @@ abstract class SqlAbstract implements SqlInterface
         //flag to record whether or not we're in a transaction for an insert statement
         $inInsertTransaction = false;
         
-        if (! $this->pdo->inTransaction() && $stmt instanceof Statement\Save) {
-            $inInsertTransaction = $this->pdo->beginTransaction();
+        if (! $this->getTransactionStatus() && $stmt instanceof Statement\Save) {
+            $inInsertTransaction = $this->beginTransaction();
         }
         
         // Get the PDO result to read.
@@ -117,7 +117,7 @@ abstract class SqlAbstract implements SqlInterface
         //if we're in an insert transaction, then return the new id
         if ($inInssertTransaction) {
             $pdoResult = $this->pdo->lastInsertId();
-            $this->pdo->commit();            
+            $this->commitTransaction();          
         }
         
         // Ensure the cursor is closed (some drivers require this)
@@ -235,6 +235,58 @@ abstract class SqlAbstract implements SqlInterface
         // Return a re-indexed array so that
         // positions are not out of order.
         return array_values($params);
+    }
+    
+    /**
+     * Begins a transaction. returns true if successful, false otherwise 
+     * 
+     * @return bool 
+     */
+    public function beginTransaction()
+    {
+        if (! $this->pdo->inTransaction()) {
+            return $this->pdo->beginTransaction();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Commits the active transaction. return true if successful, false otherwise 
+     * 
+     * @return bool 
+     */
+    public function commitTransaction()
+    {
+        if ($this->pdo->inTransaction()) {
+            return $this->pdo->commit();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Perform a rollback on the active transaction. returns true if successful, false otherwise 
+     *  
+     * @return bool 
+     */
+    public function rollbackTransaction()
+    {
+        if ($this->pdo->inTransaction()) {
+            return $this->pdo->rollBack();
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Gets the current status of the transaction. true = in transaction, false = no active transaction
+     * 
+     * @return bool
+     */
+    public function getTransactionStatus()
+    {
+        return $this->pdo->inTransaction();
     }
     
     /**
