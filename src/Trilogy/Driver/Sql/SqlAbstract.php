@@ -90,6 +90,13 @@ abstract class SqlAbstract implements SqlInterface
         // Compile all parameters from the statement.
         $params = $this->getParametersFromStatement($stmt);
 
+        //flag to record whether or not we're in a transaction for an insert statement
+        $inInsertTransaction = false;
+        
+        if (! $this->pdo->inTransaction() && $stmt instanceof Statement\Save) {
+            $inInsertTransaction = $this->pdo->beginTransaction();
+        }
+        
         // Get the PDO result to read.
         try {
             $pdoResult = $pdoStmt->execute($params);
@@ -105,6 +112,12 @@ abstract class SqlAbstract implements SqlInterface
         // Return an associative array if it is a find statement.
         if ($stmt instanceof Statement\Find) {
             $pdoResult = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        //if we're in an insert transaction, then return the new id
+        if ($inInssertTransaction) {
+            $pdoResult = $this->pdo->lastInsertId();
+            $this->pdo->commit();            
         }
         
         // Ensure the cursor is closed (some drivers require this)
