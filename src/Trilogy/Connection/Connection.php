@@ -118,6 +118,46 @@ class Connection implements ConnectionInterface
         }
         return $this->driver;
     }
+
+    /**
+     * Begins a transaction. returns true if successful, false otherwise 
+     * 
+     * @return bool 
+     */
+    public function beginTransaction()
+    {
+        $this->driver()->beginTransaction();
+    }
+    
+    /**
+     * Commits the active transaction. return true if successful, false otherwise 
+     * 
+     * @return bool 
+     */
+    public function commitTransaction()
+    {
+        $this->driver()->commitTransaction();
+    }
+    
+    /**
+     * Perform a rollback on the active transaction. returns true if successful, false otherwise 
+     *  
+     * @return bool 
+     */
+    public function rollbackTransaction()
+    {
+        $this->driver()->rollbackTransaction();
+    }
+    
+    /**
+     * Gets the current status of the transaction. true = in transaction, false = no active transaction
+     * 
+     * @return bool
+     */
+    public function getTransactionStatus() 
+    {
+        $this->driver()->getTransactionStatus();
+    }
     
     /**
      * Registers a new driver class.
