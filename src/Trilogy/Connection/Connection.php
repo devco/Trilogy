@@ -158,6 +158,18 @@ class Connection implements ConnectionInterface
     {
         $this->driver()->inTransaction();
     }
+
+    /**
+     * Returns the last insert's unique ID.
+     *
+     * @param string $sequenceName The PostgreSQL sequence name to get the last ID from.
+     *
+     * @return string
+     */
+    public function lastInsertId($sequenceName = null)
+    {
+        return $this->driver()->lastInsertId($sequenceName);
+    }
     
     /**
      * Registers a new driver class.
