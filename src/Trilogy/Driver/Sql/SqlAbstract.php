@@ -115,19 +115,26 @@ abstract class SqlAbstract implements SqlInterface
         if ($this->inTransaction()) {
             $this->commitTransaction();          
         }
-        
-        //if its an insert, then return the new id
-        if ($stmt instanceof Statement\Save && count($stmt->getWheres()) > 0) {
-            $pdoResult = $this->pdo->lastInsertId();
-        }
-        
+
         // Ensure the cursor is closed (some drivers require this)
         $pdoStmt->closeCursor();
         
         // Return either a result set or true.
         return $pdoResult;
     }
-    
+
+    /**
+     * Returns the last insert's unique ID
+     *
+     * @param string $sequenceName Optional. The PostgreSQL sequence name to get the last ID from.
+     *
+     * @return string
+     */
+    public function lastInsertId($sequenceName = null)
+    {
+        return $this->pdo->lastInsertId($sequenceName);
+    }
+
     /**
      * Compiles the passed in statement.
      * 
