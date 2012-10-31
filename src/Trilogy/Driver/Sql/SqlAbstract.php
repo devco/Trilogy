@@ -130,7 +130,7 @@ abstract class SqlAbstract implements SqlInterface
      *
      * @return integer
      */
-    public function lastInsertId($sequenceName = '')
+    public function lastInsertId($sequenceName = null)
     {
         return $this->pdo->lastInsertId($sequenceName);
     }
