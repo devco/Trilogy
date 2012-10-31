@@ -93,8 +93,9 @@ abstract class StatementAbstract implements StatementInterface
     }
 
     /**
-     * @param string $sequenceName Optional
-     * @return mixed
+     * @param string $sequenceName Optional. The PostgreSQL sequence name to get the last ID from.
+     *
+     * @return string
      */
     public function lastInsertId($sequenceName = null)
     {
