@@ -91,4 +91,13 @@ abstract class StatementAbstract implements StatementInterface
     {
         return $this->driver()->getParametersFromStatement($this);
     }
+
+    /**
+     * @param string $sequenceName Optional
+     * @return mixed
+     */
+    public function lastInsertId($sequenceName = '')
+    {
+        return $this->driver()->lastInsertId($sequenceName);
+    }
 }
