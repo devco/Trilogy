@@ -124,9 +124,9 @@ abstract class SqlAbstract implements SqlInterface
     }
 
     /**
-     * Returns the last insert's unique ID
+     * Returns the last insert's unique ID.
      *
-     * @param string $sequenceName Optional. The PostgreSQL sequence name to get the last ID from.
+     * @param string $sequenceName The PostgreSQL sequence name to get the last ID from.
      *
      * @return string
      */
