@@ -91,4 +91,14 @@ abstract class StatementAbstract implements StatementInterface
     {
         return $this->driver()->getParametersFromStatement($this);
     }
+
+    /**
+     * @param string $sequenceName Optional. The PostgreSQL sequence name to get the last ID from.
+     *
+     * @return string
+     */
+    public function lastInsertId($sequenceName = null)
+    {
+        return $this->driver()->lastInsertId($sequenceName);
+    }
 }

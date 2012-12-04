@@ -83,4 +83,13 @@ interface DriverInterface
      * @return bool
      */
     public function inTransaction();
+
+    /**
+     * Returns the last insert's unique ID.
+     *
+     * @param string $sequenceName The PostgreSQL sequence name to get the last ID from.
+     *
+     * @return string
+     */
+    public function lastInsertId($sequenceName = null);
 }
