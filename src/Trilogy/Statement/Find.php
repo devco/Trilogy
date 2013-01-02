@@ -15,6 +15,7 @@ class Find extends StatementAbstract implements IteratorAggregate
 {
     use Type\Field,
         Type\Join,
+        Type\Group,
         Type\Limit,
         Type\Sort,
         Type\Source;
