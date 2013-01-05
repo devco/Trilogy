@@ -162,15 +162,16 @@ class Statement extends UnitAbstract
 
     public function findGroupBy()
     {
-        $find1 = $this->db->find->get(['groupfield1', 'groupfield2'])
-            ->in('table')->where('something', 1)->group('groupfield1, groupfield2');
+        $find1 = $this->db->find->get('groupfield1')
+            ->in('table')->where('something', 1)->group('groupfield1');
 
         $find2 = $this->db->find->get(['groupfield1', 'groupfield2'])
             ->in('table')->where('something', 1)->group(['groupfield1', 'groupfield2']);
 
-        $comp = 'SELECT "groupfield1", "groupfield2" FROM "table" WHERE "something" = ? GROUP BY "groupfield1", "groupfield2"';
+        $comp1 = 'SELECT "groupfield1" FROM "table" WHERE "something" = ? GROUP BY "groupfield1"';
+        $comp2 = 'SELECT "groupfield1", "groupfield2" FROM "table" WHERE "something" = ? GROUP BY "groupfield1", "groupfield2"';
 
-        $this->assert($find1->compile() === $comp, $find1->compile());
-        $this->assert($find2->compile() === $comp, $find2->compile());
+        $this->assert($find1->compile() === $comp1, $find1->compile());
+        $this->assert($find2->compile() === $comp2, $find2->compile());
     }
 }

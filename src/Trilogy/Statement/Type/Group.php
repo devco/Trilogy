@@ -24,11 +24,7 @@ trait Group
         if (is_array($fields)) {
             $this->groupByFields = $fields;
         }  else {
-            $gbFields = explode(',', $fields);
-
-            foreach ($gbFields as $field) {
-                $this->groupByFields[] = trim($field);
-            }
+            $this->groupByFields[] = $fields;
         }
 
         return $this;
