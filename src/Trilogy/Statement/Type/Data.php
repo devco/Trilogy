@@ -1,37 +1,25 @@
 <?php
 
 namespace Trilogy\Statement\Type;
+use Traversable;
 
 trait Data
 {
-    /**
-     * The data bound
-     */
     private $data = [];
-    
-    /**
-     * Binds data to the statement.
-     * 
-     * @return Save
-     */
-    public function data(array $data)
+
+    public function data($data)
     {
-        //strip null fields
-        foreach ($data as $key => $value) {
-            if ($value === null) {
-                unset($data[$key]);
-            }
+        if ($data instanceof Traversable) {
+            $data = iterator_to_array($data);
         }
         
-        $this->data = $data;
+        $this->data = array_filter($data, function($item) {
+            return $item !== null;
+        });
+
         return $this;
     }
-    
-    /**
-     * Returns the bound data.
-     * 
-     * @return array
-     */
+
     public function getData()
     {
         return $this->data;
