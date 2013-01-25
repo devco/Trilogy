@@ -11,6 +11,9 @@
         }, {
             "name": "Russel Holman",
             "role": "Developer"
+        }, {
+            "name": "Otto Odgaard",
+            "role": "Developer"
         }
     ],
     "autoload": {
@@ -27,6 +30,6 @@
         "php": ">=5.4.0"
     },
     "require-dev": {
-        "treshugart/testes": "1.0.*"
+        "treshugart/testes": "dev-master"
     }
 }

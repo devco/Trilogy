@@ -318,6 +318,10 @@ abstract class SqlAbstract implements SqlInterface
         if ($sql = $this->compileWhere($find)) {
             $sqls[] = $sql;
         }
+
+        if ($sql = $this->compileGroupBy($find)) {
+            $sqls[] = $sql;
+        }
         
         if ($sql = $this->compileOrderBy($find)) {
             $sqls[] = $sql;
@@ -559,13 +563,36 @@ abstract class SqlAbstract implements SqlInterface
             . $close
             . ' ';
     }
+
+    /**
+     * Compiles the GROUP BY part of a find statement.
+     *
+     * @param Statement\Find $stmt
+     *
+     * @return string
+     */
+    public function compileGroupBy(Statement\Find $stmt)
+    {
+        $groupByFields = $stmt->getGroupByFields();
+
+        if (!$groupByFields) {
+            return;
+        }
+
+        $parts = [];
+
+        foreach ($groupByFields as $field) {
+            $parts[] = $this->quote($field);
+        }
+
+        return 'GROUP BY ' . implode(', ', $parts);
+    }
     
     /**
      * Compiles the ORDER BY part of a find statement.
      * 
-     * @param array  $fields    The fields to order by.
-     * @param string $direction The sort direction.
-     * 
+     * @param Statement\Find $stmt
+     *
      * @return string
      */
     public function compileOrderBy(Statement\Find $stmt)
@@ -588,8 +615,7 @@ abstract class SqlAbstract implements SqlInterface
     /**
      * All DBs handle limiting differently.
      * 
-     * @param int $limit  The limit.
-     * @param int $offset The offset.
+     * @param Statement\StatementInterface $stmt The statement to compile.
      * 
      * @return string
      */
@@ -641,7 +667,7 @@ abstract class SqlAbstract implements SqlInterface
     /**
      * Compiles and returns multiple field definitions.
      * 
-     * @param Statement\StatementInterface $$statement The statement to compile.
+     * @param Statement\Find $find The find statement to compile.
      * 
      * @return string
      */
