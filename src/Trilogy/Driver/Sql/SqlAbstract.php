@@ -81,23 +81,19 @@ abstract class SqlAbstract implements SqlInterface
      */
     public function execute(Statement\StatementInterface $stmt)
     {
-        // Return true if not a select statement and the statement does not fail.
-        $return = true;
-        
-        // Prepare statement.
+        $return  = true;
         $pdoStmt = $this->pdo->prepare($this->compile($stmt));
+        $params  = $this->getParametersFromStatement($stmt);
 
-        // Compile all parameters from the statement.
-        $params = $this->getParametersFromStatement($stmt);
-
-        if (! $this->inTransaction() && $stmt instanceof Statement\Save) {
+        if ($stmt instanceof Statement\Save) {
             $this->beginTransaction();
         }
-        
-        // Get the PDO result to read.
+
         try {
             $pdoResult = $pdoStmt->execute($params);
+            $this->commitTransaction();
         } catch (Exception $e) {
+            $this->commitTransaction();
             throw new LogicException(sprintf(
                 'Could not execute query "%s" with params "%s". Exception Message: %s',
                 $pdoStmt->queryString,
@@ -105,21 +101,13 @@ abstract class SqlAbstract implements SqlInterface
                 $e->getMessage()
             ));
         }
-        
-        // Return an associative array if it is a find statement.
+
         if ($stmt instanceof Statement\Find) {
             $pdoResult = $pdoStmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        
-        //if we're still in a transaction then commit it
-        if ($this->inTransaction()) {
-            $this->commitTransaction();          
-        }
 
-        // Ensure the cursor is closed (some drivers require this)
         $pdoStmt->closeCursor();
-        
-        // Return either a result set or true.
+
         return $pdoResult;
     }
 
@@ -252,7 +240,7 @@ abstract class SqlAbstract implements SqlInterface
      */
     public function beginTransaction()
     {
-        if (! $this->pdo->inTransaction()) {
+        if (!$this->pdo->inTransaction()) {
             return $this->pdo->beginTransaction();
         }
         
