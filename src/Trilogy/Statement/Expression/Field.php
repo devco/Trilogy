@@ -1,6 +1,7 @@
 <?php
 
 namespace Trilogy\Statement\Expression;
+use LogicException;
 
 class Field extends ExpressionAbstract
 {
