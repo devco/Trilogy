@@ -1,0 +1,14 @@
+language: php
+
+php:
+  - 5.4
+
+before_script:
+  - printf "\r" | pecl install yaml
+  - composer selfupdate
+  - composer install --dev --prefer-dist
+
+script: php bin/tests.php
+
+notifications:
+  hipchat: 90799bb5f574bdf0c3d24989378c71@Research & Development
