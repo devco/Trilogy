@@ -81,7 +81,10 @@ abstract class SqlAbstract implements SqlInterface
      */
     public function execute(Statement\StatementInterface $stmt)
     {
-        $return  = true;
+        if ($stmt instanceof Statement\Save && !count($stmt->getData())) {
+            return;
+        }
+
         $pdoStmt = $this->pdo->prepare($this->compile($stmt));
         $params  = $this->getParametersFromStatement($stmt);
 
@@ -200,7 +203,14 @@ abstract class SqlAbstract implements SqlInterface
 
         // Save parameter parts.
         if ($stmt instanceof Statement\Save) {
-            $params = array_merge($params, $stmt->getData());
+            $data = $stmt->getData();
+
+            array_walk_recursive(
+                $data,
+                function($i) use (&$params) {
+                    $params[] = $i;
+                }
+            );
         }
 
         // Where clause parameters. Array values are merged
@@ -362,19 +372,24 @@ abstract class SqlAbstract implements SqlInterface
      */
     public function compileInsert(Statement\Save $save)
     {
+        $data = $save->getData();
+
         // Compile field definition.
-        $fields = array_keys($save->getData());
+        $fields = array_keys($data[0]);
         $fields = $this->quoteAll($fields);
         
         // Compile value definition.
         $values = str_repeat('?', count($fields));
         $values = str_split($values);
-        
+
+        $tuples = '(' . implode(', ', $values) . ')';
+        $tuples = array_fill(0, count($data), $tuples);
+
         return sprintf(
-            'INSERT INTO %s (%s) VALUES (%s)',
+            'INSERT INTO %s (%s) VALUES %s',
             $this->compileSourceDefinitions($save),
             implode(', ', $fields),
-            implode(', ', $values)
+            implode(', ', $tuples)
         );
     }
     
@@ -388,6 +403,13 @@ abstract class SqlAbstract implements SqlInterface
     public function compileUpdate(Statement\Save $save)
     {
         $fields = array_keys($save->getData());
+        $data = $save->getData();
+        if (count($data) > 1) {
+            throw new LogicException('UPDATE only accepts a single tuple at a time.');
+        }
+        $data = $data[0];
+
+        $fields = array_keys($data);
         
         foreach ($fields as &$field) {
             $field = $this->quote($field) . ' = ?';
