@@ -20,6 +20,14 @@ class Statement extends UnitAbstract
         
         $this->assert($save === $comp, 'Compilation failed.');
     }
+
+    public function multiRowSaveInsert()
+    {
+        $save = $this->db->save->in('test')->dataSet([['field1' => 'value1'], ['field1' => 'value1']])->compile();
+        $comp = 'INSERT INTO "test" ("field1") VALUES (?), (?)';
+
+        $this->assert($save === $comp, 'Compilation failed.');
+    }
     
     public function simpleFind()
     {

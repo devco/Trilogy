@@ -241,6 +241,10 @@ Inserting:
 
     $inserted = $this->db->save->in('test')->data(['field1' => 'value1']);
 
+Multirow Inserting:
+
+    $inserted = $this->db->save->in('test')->dataSet([['field1' => 'value1'], ['field1' => 'value1']]);
+
 Updating:
 
     $updated = $this->db->save->in('test')->data(['field1' => 'value2'])->where('field1', 'value1');

@@ -9,13 +9,20 @@ trait Data
 
     public function data($data)
     {
-        if ($data instanceof Traversable) {
-            $data = iterator_to_array($data);
+        return $this->dataSet([$data]);
+    }
+
+    public function dataSet($dataSet)
+    {
+        foreach ($dataSet as $data) {
+            if ($data instanceof Traversable) {
+                $data = iterator_to_array($data);
+            }
+
+            $this->data[] = array_filter($data, function($item) {
+                return $item !== null;
+            });
         }
-        
-        $this->data = array_filter($data, function($item) {
-            return $item !== null;
-        });
 
         return $this;
     }
