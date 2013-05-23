@@ -39,4 +39,17 @@ class Pgsql extends UnitAbstract
         $this->assert($find->compile() === $comp);
         $this->assert($find->getLimit() === 10 && $find->getOffset() === 20);
     }
+
+    public function filterBoolean()
+    {
+        $find = $this->db->find->in('test')->where('x', true);
+        $values = $this->db->driver()->getParametersFromStatement($find);
+
+        $this->assert($values[0] === 'TRUE', 'The boolean true should have been filtered to a string ('. var_export($values[0], true) .')');
+
+        $find = $this->db->find->in('test')->where('x', false);
+        $values = $this->db->driver()->getParametersFromStatement($find);
+
+        $this->assert($values[0] === 'FALSE', 'The boolean true should have been filtered to a string ('. var_export($values[0], true) .')');
+    }
 }
