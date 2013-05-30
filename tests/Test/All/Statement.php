@@ -44,6 +44,19 @@ class Statement extends UnitAbstract
         
         $this->assert($find === $comp, 'Compilation failed.');
     }
+
+    public function findJoinAndOnValue()
+    {
+        $x = 9;
+        $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->on('b.a = a.b')->andOn('b.c', $x);
+        $comp = 'SELECT * FROM "a" INNER JOIN "b" ON "b"."a" = "a"."b" AND "b"."c" = ? WHERE "a"."a" = ?';
+
+        $this->assert($find->compile() === $comp, 'Compilation failed.');
+
+        $params = $find->params();
+
+        $this->assert($params[0] === $x && $params[1] === 1, 'Parameters wrong.');
+    }
     
     public function findLike()
     {

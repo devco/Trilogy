@@ -213,9 +213,19 @@ abstract class SqlAbstract implements SqlInterface
             );
         }
 
+        $wheres = [];
+
+        if ($stmt instanceof Statement\Find) {
+            foreach ($stmt->getJoins() as $join) {
+                $wheres = array_merge($wheres, $join->getWheres());
+            }
+        }
+
+        $wheres = array_merge($wheres, $stmt->getWheres());
+
         // Where clause parameters. Array values are merged
         // because they are part of an * operator.
-        foreach ($stmt->getWheres() as $where) {
+        foreach ($wheres as $where) {
             $value = $where->getValue();
 
             if (is_array($value)) {
