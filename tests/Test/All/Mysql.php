@@ -39,4 +39,17 @@ class Mysql extends UnitAbstract
         $this->assert($find->compile() === $comp);
         $this->assert($find->getLimit() === 10 && $find->getOffset() === 20);
     }
+
+    public function filterBoolean()
+    {
+        $find = $this->db->find->in('test')->where('x', true);
+        $values = $this->db->driver()->getParametersFromStatement($find);
+
+        $this->assert($values[0] === 1, 'The boolean true should have been filtered to the integer 1 ('. var_export($values[0], true) .')');
+
+        $find = $this->db->find->in('test')->where('x', false);
+        $values = $this->db->driver()->getParametersFromStatement($find);
+
+        $this->assert($values[0] === 0, 'The boolean true should have been filtered to the integer 0 ('. var_export($values[0], true) .')');
+    }
 }

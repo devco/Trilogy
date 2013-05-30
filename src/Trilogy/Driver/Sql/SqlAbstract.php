@@ -248,6 +248,11 @@ abstract class SqlAbstract implements SqlInterface
             return !is_null($value);
         });
 
+        // We need to convert boolean values to their driver specific value
+        array_walk($params, function(&$value) {
+            $value = $this->filterBool($value);
+        });
+
         // Return a re-indexed array so that
         // positions are not out of order.
         return array_values($params);
@@ -731,5 +736,21 @@ abstract class SqlAbstract implements SqlInterface
     {
         $words = ['?', 'true', 'false', 'null'];
         return in_array(strtolower($word), $words);
+    }
+
+    /**
+     * Converts the value to the driver specific Boolean value
+     *
+     * @param $value The value to be converted
+     *
+     * @return mixed
+     */
+    public function filterBool($value)
+    {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        return $value;
     }
 }

@@ -29,4 +29,20 @@ class Pgsql extends SqlAbstract
         }
         return 'LIMIT ? OFFSET ?';
     }
+
+    /**
+     * Converts the value to the driver specific Boolean value
+     *
+     * @param $value The value to be converted
+     *
+     * @return mixed
+     */
+    public function filterBool($value)
+    {
+        if (is_bool($value)) {
+            return $value ? 'TRUE' : 'FALSE';
+        }
+
+        return $value;
+    }
 }
