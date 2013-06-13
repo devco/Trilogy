@@ -33,7 +33,8 @@ Tests failed:
 Exceptions:
 
 <?php foreach ($suite->getExceptions() as $exc): ?>
-<?php echo $exc; ?>
+<?php echo $exc->getMessage(); ?>
+<?php echo $exc->getException()->getTraceAsString(); ?>
 
 <?php endforeach; ?>
 

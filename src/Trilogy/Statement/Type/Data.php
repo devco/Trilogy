@@ -19,9 +19,7 @@ trait Data
                 $data = iterator_to_array($data);
             }
 
-            $this->data[] = array_filter($data, function($item) {
-                return $item !== null;
-            });
+            $this->data[] = $data;
         }
 
         return $this;
