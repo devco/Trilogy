@@ -31,18 +31,20 @@ class Statement extends UnitAbstract
     
     public function simpleFind()
     {
-        $find = $this->db->find->in('test')->where('field1 = ?', 'value1')->compile();
+        $find1 = $this->db->find->in('test')->where('field1 = ?', 'value1');
+        $find2 = $this->db->find->in('test')->where('field1', 'value1');
         $comp = 'SELECT * FROM "test" WHERE "field1" = ?';
         
-        $this->assert($find === $comp, 'Compilation failed.');
+        $this->assert($find1->compile() === $comp, 'Compilation failed (find1).');
+        $this->assert($find2->compile() === $comp, 'Compilation failed (find2).');
     }
     
     public function findJoins()
     {
-        $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->on('b.a = a.b')->compile();
+        $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->on('b.a = a.b');
         $comp = 'SELECT * FROM "a" INNER JOIN "b" ON "b"."a" = "a"."b" WHERE "a"."a" = ?';
         
-        $this->assert($find === $comp, 'Compilation failed.');
+        $this->assert($find->compile() === $comp, 'Compilation failed.');
     }
 
     public function findJoinAndOnValue()
@@ -56,6 +58,18 @@ class Statement extends UnitAbstract
         $params = $find->params();
 
         $this->assert($params[0] === $x && $params[1] === 1, 'Parameters wrong.');
+    }
+
+    public function findWhereNull()
+    {
+        $find = $this->db->find->in('test')->where('field1');
+        $comp = 'SELECT * FROM "test" WHERE "field1" IS NULL';
+
+        $this->assert($find->compile() === $comp, 'Compilation failed.');
+
+        $params = $find->params();
+
+        $this->assert(!count($params), 'Parameters wrong.');
     }
     
     public function findLike()
@@ -194,5 +208,75 @@ class Statement extends UnitAbstract
 
         $this->assert($find1->compile() === $comp1, $find1->compile());
         $this->assert($find2->compile() === $comp2, $find2->compile());
+    }
+
+    public function insertNullParameter()
+    {
+        $param2 = 7;
+
+        $insert = $this->db->save
+            ->in('table')
+            ->data([
+                'parameter1' => null,
+                'parameter2' => $param2
+            ]);
+
+        $comp = 'INSERT INTO "table" ("parameter1", "parameter2") VALUES (?, ?)';
+
+        $this->assert($insert->compile() === $comp, $insert->compile());
+
+        $values = $this->db->driver()->getParametersFromStatement($insert);
+
+        $this->assert(count($values) === 2, 'Wrong number of parameters found.');
+        $this->assert($values[0] === null, 'Wrong parameter value (parameter1).');
+        $this->assert($values[1] === $param2, 'Wrong parameter value (parameter2).');
+    }
+
+    public function updateNullParameter()
+    {
+        $id = 9;
+        $param2 = 7;
+
+        $insert = $this->db->save
+            ->in('table')
+            ->where('id', $id)
+            ->data([
+                'parameter1' => null,
+                'parameter2' => $param2
+            ]);
+
+        $comp = 'UPDATE "table" SET "parameter1" = ?, "parameter2" = ? WHERE "id" = ?';
+
+        $this->assert($insert->compile() === $comp, $insert->compile());
+
+        $values = $this->db->driver()->getParametersFromStatement($insert);
+
+        $this->assert(count($values) === 3, 'Wrong number of parameters found.');
+        $this->assert($values[0] === null, 'Wrong parameter value (parameter1).');
+        $this->assert($values[1] === $param2, 'Wrong parameter value (parameter2).');
+        $this->assert($values[2] === $id, 'Wrong parameter value (id).');
+    }
+
+    public function updateParametersWhereNull()
+    {
+        $param2 = 7;
+
+        $insert = $this->db->save
+            ->in('table')
+            ->where('id')
+            ->data([
+                'parameter1' => null,
+                'parameter2' => $param2
+            ]);
+
+        $comp = 'UPDATE "table" SET "parameter1" = ?, "parameter2" = ? WHERE "id" IS NULL';
+
+        $this->assert($insert->compile() === $comp, $insert->compile());
+
+        $values = $this->db->driver()->getParametersFromStatement($insert);
+
+        $this->assert(count($values) === 2, 'Wrong number of parameters found.');
+        $this->assert($values[0] === null, 'Wrong parameter value (parameter1).');
+        $this->assert($values[1] === $param2, 'Wrong parameter value (parameter2).');
     }
 }

@@ -230,7 +230,7 @@ abstract class SqlAbstract implements SqlInterface
 
             if (is_array($value)) {
                 $params = array_merge($params, $value);
-            } else {
+            } elseif (!is_null($value)) {
                 $params[] = $value;
             }
         }
@@ -241,12 +241,6 @@ abstract class SqlAbstract implements SqlInterface
                 $params = array_merge($params, [$stmt->getLimit(), $stmt->getOffset()]);
             }
         }
-
-        // We need to remove all null values since they are
-        // transformed into "IS NULL" or "IS NOT NULL" tokens.
-        $params = array_filter($params, function($value) {
-            return !is_null($value);
-        });
 
         // We need to convert boolean values to their driver specific value
         array_walk($params, function(&$value) {
@@ -389,23 +383,25 @@ abstract class SqlAbstract implements SqlInterface
     {
         $data = $save->getData();
 
-        // Compile field definition.
-        $fields = array_keys($data[0]);
-        $fields = $this->quoteAll($fields);
-        
-        // Compile value definition.
-        $values = str_repeat('?', count($fields));
-        $values = str_split($values);
+        if (count($data)) {
+            // Compile field definition.
+            $fields = array_keys($data[0]);
+            $fields = $this->quoteAll($fields);
 
-        $tuples = '(' . implode(', ', $values) . ')';
-        $tuples = array_fill(0, count($data), $tuples);
+            // Compile value definition.
+            $values = str_repeat('?', count($fields));
+            $values = str_split($values);
 
-        return sprintf(
-            'INSERT INTO %s (%s) VALUES %s',
-            $this->compileSourceDefinitions($save),
-            implode(', ', $fields),
-            implode(', ', $tuples)
-        );
+            $tuples = '(' . implode(', ', $values) . ')';
+            $tuples = array_fill(0, count($data), $tuples);
+
+            return sprintf(
+                'INSERT INTO %s (%s) VALUES %s',
+                $this->compileSourceDefinitions($save),
+                implode(', ', $fields),
+                implode(', ', $tuples)
+            );
+        }
     }
     
     /**
