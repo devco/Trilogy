@@ -29,12 +29,22 @@ class Statement extends UnitAbstract
         $this->assert($save === $comp, 'Compilation failed.');
     }
     
-    public function simpleFind()
+    public function findSimple()
     {
         $find1 = $this->db->find->in('test')->where('field1 = ?', 'value1');
         $find2 = $this->db->find->in('test')->where('field1', 'value1');
         $comp = 'SELECT * FROM "test" WHERE "field1" = ?';
-        
+
+        $this->assert($find1->compile() === $comp, 'Compilation failed (find1).');
+        $this->assert($find2->compile() === $comp, 'Compilation failed (find2).');
+    }
+
+    public function findDistinct()
+    {
+        $find1 = $this->db->find->in('test')->distinct()->where('field1 = ?', 'value1');
+        $find2 = $this->db->find->in('test')->distinct()->where('field1', 'value1');
+        $comp = 'SELECT DISTINCT * FROM "test" WHERE "field1" = ?';
+
         $this->assert($find1->compile() === $comp, 'Compilation failed (find1).');
         $this->assert($find2->compile() === $comp, 'Compilation failed (find2).');
     }
