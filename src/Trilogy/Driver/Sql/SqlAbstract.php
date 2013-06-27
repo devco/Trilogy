@@ -451,27 +451,33 @@ abstract class SqlAbstract implements SqlInterface
         } else {
             $fields = '*';
         }
-        
-        return 'SELECT ' . $fields;
+
+        $select = 'SELECT ';
+
+        if ($find->getDistinct()) {
+            $select .= 'DISTINCT ';
+        }
+
+        return $select . $fields;
     }
-    
+
     /**
      * Compiles the FROM part of a find statement.
-     * 
+     *
      * @param Statement\StatementInterface $stmt The statement to compile.
-     * 
+     *
      * @return string
      */
     public function compileFrom(Statement\StatementInterface $stmt)
     {
         return 'FROM ' . $this->compileSourceDefinitions($stmt);
     }
-    
+
     /**
      * Compiles the WHERE part of a statement.
-     * 
+     *
      * @param Statement\StatementInterface $$stmt The statement to compile.
-     * 
+     *
      * @return string
      */
     public function compileWhere(Statement\StatementInterface $stmt)
@@ -480,30 +486,30 @@ abstract class SqlAbstract implements SqlInterface
             return 'WHERE ' . $sql;
         }
     }
-    
+
     /**
      * Compiles the JOIN part of a find statement.
-     * 
+     *
      * @param Statement\Find $find The find statement to compile the joins for.
-     * 
+     *
      * @return string
      */
     public function compileJoin(Statement\Find $find)
     {
         $sql = '';
-        
+
         foreach ($find->getJoins() as $join) {
             $source = $this->compileSourceDefinition($join->getSource());
-            
+
             $sql .= sprintf(
-                '%s JOIN %s ON %s',
+                '%s JOIN %s ON %s ',
                 strtoupper($join->getType()),
                 $source,
                 $this->compileWhereParts($join->getWheres())
             );
         }
-        
-        return $sql;
+
+        return trim($sql);
     }
     
     /**

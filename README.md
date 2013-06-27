@@ -209,6 +209,10 @@ The `Find` statement exists to return a result set.
 
     $find = $this->db->find->in('test')->where('field1', 'value1');
 
+You can select `DISTINCT` values.
+
+    $find = $this->db->find->in('test')->distinct()->where('field1', 'value1');
+
 You can simply output the comiled statement:
 
     echo $find->compile();
