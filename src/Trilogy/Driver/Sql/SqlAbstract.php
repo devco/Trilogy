@@ -162,6 +162,10 @@ abstract class SqlAbstract implements SqlInterface
         if ($this->isReservedWord($identifier)) {
             return $identifier;
         }
+
+        if ($this->isDoubleQuoted($identifier)) {
+            return $identifier;
+        }
         
         $identifiers = explode('.', (string) $identifier);
         
@@ -172,6 +176,20 @@ abstract class SqlAbstract implements SqlInterface
         }
         
         return implode('.', $identifiers);
+    }
+
+    /**
+     * A quick hack to allow field functions to operate correctly.
+     *
+     * e.g. WHERE LOWER("field") LIKE '%string%'
+     *
+     * @param string $string The string to check for double quotes
+     *
+     * @return bool
+     */
+    public function isDoubleQuoted($string)
+    {
+        return count(explode('"', $string)) > 1;
     }
     
     /**
