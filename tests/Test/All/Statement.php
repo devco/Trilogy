@@ -290,7 +290,7 @@ class Statement extends UnitAbstract
         $this->assert($values[1] === $param2, 'Wrong parameter value (parameter2).');
     }
 
-    public function whereFieldFunctions()
+    public function whereClauseFunctions()
     {
         $find = $this->db->find->in('a')->where('LOWER("a") ~ *?*', 'b')->compile();
         $comp = 'SELECT * FROM "a" WHERE LOWER("a") LIKE ?';
