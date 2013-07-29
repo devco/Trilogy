@@ -163,10 +163,10 @@ abstract class SqlAbstract implements SqlInterface
             return $identifier;
         }
 
-        if ($this->isDoubleQuoted($identifier)) {
+        if ($this->hasSpecialChars($identifier)) {
             return $identifier;
         }
-        
+
         $identifiers = explode('.', (string) $identifier);
         
         foreach ($identifiers as &$identifier) {
@@ -179,17 +179,15 @@ abstract class SqlAbstract implements SqlInterface
     }
 
     /**
-     * A quick hack to allow field functions to operate correctly.
+     * Check for special characters.
      *
-     * e.g. WHERE LOWER("field") LIKE '%string%'
-     *
-     * @param string $string The string to check for double quotes
+     * @param string $string The string to check for special characters.
      *
      * @return bool
      */
-    public function isDoubleQuoted($string)
+    public function hasSpecialChars($string)
     {
-        return count(explode('"', $string)) > 1;
+        return preg_match('/"|\(|\)/', $string);
     }
     
     /**
