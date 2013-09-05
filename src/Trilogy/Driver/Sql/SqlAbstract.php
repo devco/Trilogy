@@ -162,7 +162,11 @@ abstract class SqlAbstract implements SqlInterface
         if ($this->isReservedWord($identifier)) {
             return $identifier;
         }
-        
+
+        if ($this->hasSpecialChars($identifier)) {
+            return $identifier;
+        }
+
         $identifiers = explode('.', (string) $identifier);
         
         foreach ($identifiers as &$identifier) {
@@ -172,6 +176,18 @@ abstract class SqlAbstract implements SqlInterface
         }
         
         return implode('.', $identifiers);
+    }
+
+    /**
+     * Check for special characters.
+     *
+     * @param string $string The string to check for special characters.
+     *
+     * @return bool
+     */
+    public function hasSpecialChars($string)
+    {
+        return preg_match('/"|\(|\)/', $string);
     }
     
     /**
