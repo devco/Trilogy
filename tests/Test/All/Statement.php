@@ -3,6 +3,7 @@
 namespace Test\All;
 use Testes\Test\UnitAbstract;
 use Trilogy\Connection\Connection;
+use Trilogy\Statement\Part;
 
 class Statement extends UnitAbstract
 {
@@ -54,6 +55,14 @@ class Statement extends UnitAbstract
         $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b')->on('b.a = a.b');
         $comp = 'SELECT * FROM "a" INNER JOIN "b" ON "b"."a" = "a"."b" WHERE "a"."a" = ?';
         
+        $this->assert($find->compile() === $comp, 'Compilation failed.');
+    }
+
+    public function findLeftJoin()
+    {
+        $find = $this->db->find->in('a')->where('a.a = ?', 1)->join('b', Part\Join::LEFT)->on('b.a = a.b');
+        $comp = 'SELECT * FROM "a" LEFT JOIN "b" ON "b"."a" = "a"."b" WHERE "a"."a" = ?';
+
         $this->assert($find->compile() === $comp, 'Compilation failed.');
     }
 
