@@ -52,4 +52,26 @@ class Pgsql extends UnitAbstract
 
         $this->assert($values[0] === 'FALSE', 'The boolean true should have been filtered to a string ('. var_export($values[0], true) .')');
     }
+
+    public function subSelect()
+    {
+        $find1 = $this->db->find->in('test')->where('id *', "SELECT id from test WHERE subId > 10");
+        $find2 = $this->db->find->in('test')->where('id !*', "SELECT id from test WHERE subId > 10");
+
+        $comp1 = 'SELECT * FROM "test" WHERE "id" IN (SELECT id from test WHERE subId > 10)';
+        $comp2 = 'SELECT * FROM "test" WHERE "id" NOT IN (SELECT id from test WHERE subId > 10)';
+
+        $this->assert($find1->compile() == $comp1);
+        $this->assert($find2->compile() == $comp2);
+    }
+
+    public function subSelectStatement()
+    {
+        $find1 = $this->db->find->in('test')->where('subId >', 10);
+        $find2 = $this->db->find->in('test')->where('id !*', $find1);
+
+        $comp2 = 'SELECT * FROM "test" WHERE "id" NOT IN (SELECT * FROM "test" WHERE "subId" > ?)';
+
+        $this->assert($find2->compile() == $comp2);
+    }
 }

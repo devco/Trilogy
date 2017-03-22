@@ -586,11 +586,20 @@ abstract class SqlAbstract implements SqlInterface
             $op    = null;
         // Handle "IN" operators.
         } elseif (($op === 'NOT IN' || $op === 'IN') && $value === '?') {
-            $where->setValue((array) $where->getValue());
-            $value = $where->getValue();
-            $value = str_repeat('?', count($value));
-            $value = str_split($value);
-            $value = implode(', ', $value);
+            $whereValue = $where->getValue();
+
+            if (is_string($whereValue)) {
+                $value = $whereValue;
+            } elseif (is_array($whereValue)) {
+                $where->setValue((array) $where->getValue());
+                $value = $whereValue;
+                $value = str_repeat('?', count($value));
+                $value = str_split($value);
+                $value = implode(', ', $value);
+            } elseif ($whereValue instanceof Statement\Find) {
+                $value = $whereValue->compile();
+            }
+
             $value = '(' . $value . ')';
         }
         
