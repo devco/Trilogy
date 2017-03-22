@@ -588,9 +588,7 @@ abstract class SqlAbstract implements SqlInterface
         } elseif (($op === 'NOT IN' || $op === 'IN') && $value === '?') {
             $whereValue = $where->getValue();
 
-            if (is_string($whereValue)) {
-                $value = $whereValue;
-            } elseif (is_array($whereValue)) {
+            if (is_array($whereValue)) {
                 $where->setValue((array) $where->getValue());
                 $value = $whereValue;
                 $value = str_repeat('?', count($value));
