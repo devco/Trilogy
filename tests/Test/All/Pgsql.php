@@ -64,4 +64,14 @@ class Pgsql extends UnitAbstract
         $this->assert($find1->compile() == $comp1);
         $this->assert($find2->compile() == $comp2);
     }
+
+    public function subSelectStatement()
+    {
+        $find1 = $this->db->find->in('test')->where('subId >', 10);
+        $find2 = $this->db->find->in('test')->where('id !*', $find1);
+
+        $comp2 = 'SELECT * FROM "test" WHERE "id" NOT IN (SELECT * FROM "test" WHERE "subId" > ?)';
+
+        $this->assert($find2->compile() == $comp2);
+    }
 }
