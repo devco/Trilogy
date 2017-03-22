@@ -598,6 +598,7 @@ abstract class SqlAbstract implements SqlInterface
                 $value = implode(', ', $value);
             } elseif ($whereValue instanceof Statement\Find) {
                 $value = $whereValue->compile();
+                $where->setValue($whereValue->params());
             }
 
             $value = '(' . $value . ')';

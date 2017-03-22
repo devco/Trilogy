@@ -68,10 +68,16 @@ class Pgsql extends UnitAbstract
     public function subSelectStatement()
     {
         $find1 = $this->db->find->in('test')->where('subId >', 10);
-        $find2 = $this->db->find->in('test')->where('id !*', $find1);
+        $find2 = $this->db->find->in('test')->where('catId', 1)->andWhere('id !*', $find1);
 
-        $comp2 = 'SELECT * FROM "test" WHERE "id" NOT IN (SELECT * FROM "test" WHERE "subId" > ?)';
+        $comp = 'SELECT * FROM "test" WHERE "catId" = ? AND "id" NOT IN (SELECT * FROM "test" WHERE "subId" > ?)';
 
-        $this->assert($find2->compile() == $comp2);
+        $this->assert($find2->compile() == $comp, 'Query does not match');
+
+        $params = $find2->params();
+
+        $this->assert(count($params) == 2, 'Param count should be 2');
+        $this->assert($params['0'] == 1, 'Param 0 should be 1');
+        $this->assert($params['1'] == 10, 'Param 1 should be 10');
     }
 }
